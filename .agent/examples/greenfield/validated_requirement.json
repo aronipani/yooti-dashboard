@@ -1,0 +1,23 @@
+{
+  "story_id": "DASH-001",
+  "title": "Property CRUD — create, read, update, archive",
+  "type": "feature",
+  "priority": "P1",
+  "context": "greenfield",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "An authenticated property manager",
+      "when": "They POST /properties with a valid payload",
+      "then": "Property created, 201 returned with id",
+      "testable": true
+    }
+  ],
+  "definition_of_done": [
+    "Unit tests passing",
+    "Integration tests passing",
+    "Coverage new code >= 90%",
+    "0 regressions"
+  ],
+  "estimated_complexity": "M"
+}

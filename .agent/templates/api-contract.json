@@ -1,0 +1,67 @@
+{
+  "_template": "api-contract",
+  "_instructions": "API stories require contract tests. The OpenAPI spec must be defined in the story before coding starts.",
+  "story_id": "STORY-NNN",
+  "title": "API: [endpoint or contract description]",
+  "type": "feature",
+  "subtype": "api-contract",
+  "priority": "P1",
+  "endpoint": "POST /api/v1/resource",
+  "method": "POST | GET | PUT | PATCH | DELETE",
+  "request_schema": {
+    "description": "Describe the request body fields here",
+    "example": {}
+  },
+  "response_schema": {
+    "success": {
+      "status": 201,
+      "description": "describe success response"
+    },
+    "errors": [
+      {
+        "status": 400,
+        "description": "validation error"
+      },
+      {
+        "status": 401,
+        "description": "unauthenticated"
+      },
+      {
+        "status": 403,
+        "description": "unauthorised"
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "a valid authenticated request",
+      "when": "the endpoint is called",
+      "then": "returns 201 with the defined response schema",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-2",
+      "given": "an unauthenticated request",
+      "when": "the endpoint is called",
+      "then": "returns 401",
+      "testable": true,
+      "test_layer": "integration"
+    }
+  ],
+  "definition_of_done": [
+    "Contract tests cover all response codes defined above",
+    "Request schema validated with Zod or Pydantic",
+    "Authentication enforced",
+    "OpenAPI spec updated to include this endpoint",
+    "Supertest integration tests pass"
+  ],
+  "constitutions_to_apply": [
+    "security",
+    "testing",
+    "python",
+    "postgresql"
+  ],
+  "agent_instructions": "Implement the exact request and response schemas defined above. Do not add or remove fields. If the schema is ambiguous, escalate before coding."
+}

@@ -1,0 +1,32 @@
+{
+  "type": "aws-lambda",
+  "description": "AWS Lambda microservice — API Gateway + DynamoDB + optional SQS/SNS/EventBridge",
+  "required_fields": [
+    "story_id",
+    "title",
+    "api_endpoints",
+    "acceptance_criteria"
+  ],
+  "acceptance_criteria_guidance": "AC-1: Happy path — valid input returns expected response (201/200)\nAC-2: Validation error — missing/invalid fields return 400 with a message (no stack trace)\nAC-3: Conflict/duplicate — same resource submitted twice returns 409\nAC-4: AWS failure — DynamoDB/SQS unavailable returns 500 with no internal detail exposed\nAC-5: Auth — unauthenticated request returns 401",
+  "definition_of_done": [
+    "All AC have passing unit tests using moto — no real AWS calls in any test",
+    "SQS handlers return batchItemFailures — never fail the whole batch",
+    "DynamoDB uses single table design — no Scan operations anywhere",
+    "Coverage on new code >= 90%",
+    "Security scan: 0 HIGH/CRITICAL",
+    "No credentials, ARNs, or table names hardcoded — all from os.environ",
+    "SAM template or CDK stack present and reviewed at Gate G2"
+  ],
+  "constitutions_to_apply": [
+    "python",
+    "aws",
+    "security",
+    "testing"
+  ],
+  "layers": [
+    "api",
+    "database"
+  ],
+  "decomposition_hint": "T001 — DynamoDB schema + repository layer (moto tests only — no real AWS)\nT002 — Lambda handler + service + validator (unit tests with moto)\nT003 — SAM/CDK definition + test event files",
+  "estimated_complexity": "M"
+}

@@ -1,0 +1,23 @@
+{
+  "story_id": "DASH-001",
+  "title": "Add rate limiting to POST /auth/login",
+  "type": "feature",
+  "priority": "P1",
+  "context": "brownfield",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "A user submits more than 5 login attempts in 60 seconds",
+      "when": "The 6th request arrives",
+      "then": "Return HTTP 429 with Retry-After header",
+      "testable": true
+    }
+  ],
+  "definition_of_done": [
+    "Unit tests passing",
+    "Integration tests passing",
+    "Coverage new code >= 90%",
+    "0 regressions"
+  ],
+  "estimated_complexity": "M"
+}

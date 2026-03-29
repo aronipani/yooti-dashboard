@@ -1,0 +1,12 @@
+node_modules/
+.env
+*.env.local
+dist/
+.coverage/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+playwright-report/
+.lighthouseci/
+localstack-data/

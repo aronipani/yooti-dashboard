@@ -1,0 +1,164 @@
+{
+  "project": "yooti-dashboard",
+  "version": "1.0.0",
+  "type": "full",
+  "context": "greenfield",
+  "stage": 3,
+  "linter": "eslint",
+  "ci": "none",
+  "deploy": "docker",
+  "stack": [
+    "python",
+    "react"
+  ],
+  "include_aws": true,
+  "aws": {
+    "region": "us-east-1",
+    "services": [
+      "lambda",
+      "dynamodb",
+      "s3"
+    ],
+    "deploy": "sam",
+    "localstack_url": "http://localhost:4566",
+    "resources": {
+      "dynamodb_table": "yooti-dashboard",
+      "s3_bucket": "yooti-dashboard-data"
+    }
+  },
+  "databases": [
+    "postgres",
+    "redis"
+  ],
+  "vector_store": "none",
+  "item_prefix": "DASH",
+  "item_format": "{prefix}-{number}",
+  "agent_frameworks": [
+    "langgraph",
+    "langchain"
+  ],
+  "llm_providers": [
+    "anthropic"
+  ],
+  "pipeline": {
+    "phases": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "human_gates": [
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "agent_phases_at_stage": {
+      "1": [
+        1
+      ],
+      "2": [
+        1,
+        2
+      ],
+      "3": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "4": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "5": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  },
+  "quality_gates": {
+    "coverage_overall": 80,
+    "coverage_new_code": 90,
+    "mutation_score_warn": 85,
+    "lint_errors": 0,
+    "type_errors": 0,
+    "security_critical": 0,
+    "security_high": 0
+  },
+  "toolchain": {
+    "frontend": {
+      "runtime": "node",
+      "version": "20",
+      "framework": "react",
+      "build_tool": "vite",
+      "linter": "eslint",
+      "type_check": "tsc --noEmit",
+      "test_runner": "vitest",
+      "test_command": "npm run test",
+      "test_coverage": "vitest --coverage",
+      "a11y_runner": "axe-core",
+      "e2e_runner": "playwright",
+      "lint_command": "eslint . --ext .ts,.tsx",
+      "coverage_threshold": 80,
+      "new_code_threshold": 90
+    },
+    "agents": {
+      "runtime": "python",
+      "version": "3.12",
+      "framework": "langgraph",
+      "linter": "ruff",
+      "formatter": "ruff",
+      "type_check": "mypy . --strict",
+      "test_runner": "pytest",
+      "test_command": "pytest -m \"not eval and not integration\"",
+      "test_unit": "pytest -m \"not eval and not integration\"",
+      "test_integration": "pytest -m integration",
+      "test_evals": "pytest --eval",
+      "test_coverage": "pytest --cov --cov-report=json",
+      "mutation": "mutmut run",
+      "lint_command": "ruff check . && ruff format --check .",
+      "coverage_threshold": 80,
+      "new_code_threshold": 90
+    },
+    "batch": {
+      "runtime": "python",
+      "version": "3.12",
+      "framework": "boto3",
+      "linter": "ruff",
+      "formatter": "ruff",
+      "type_check": "mypy . --strict",
+      "test_runner": "pytest",
+      "test_command": "pytest -m \"not integration\"",
+      "test_unit": "pytest -m \"not integration\"",
+      "test_integration": "pytest -m integration",
+      "test_coverage": "pytest --cov --cov-report=json",
+      "mutation": "mutmut run",
+      "lint_command": "ruff check . && ruff format --check .",
+      "coverage_threshold": 80,
+      "new_code_threshold": 90,
+      "aws_services": [
+        "s3",
+        "lambda",
+        "sqs",
+        "eventbridge"
+      ]
+    }
+  }
+}

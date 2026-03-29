@@ -1,0 +1,51 @@
+{
+  "_template": "agent-story",
+  "_instructions": "Agent stories require three test layers. The eval layer must be written before the agent is considered done.",
+  "story_id": "STORY-NNN",
+  "title": "Agent: [what the agent does]",
+  "type": "feature",
+  "subtype": "agent",
+  "priority": "P1",
+  "agent_name": "descriptive-agent-name",
+  "agent_purpose": "One sentence: what this agent does and why",
+  "llm_provider": "anthropic",
+  "input_state_fields": [
+    "describe what flows in"
+  ],
+  "output_state_fields": [
+    "describe what flows out"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "a valid input is provided to the agent",
+      "when": "the graph is invoked",
+      "then": "the agent returns a non-empty result with no error field",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-2",
+      "given": "an invalid or edge-case input is provided",
+      "when": "the graph is invoked",
+      "then": "the agent returns an error field — it does not raise an exception",
+      "testable": true,
+      "test_layer": "unit"
+    }
+  ],
+  "definition_of_done": [
+    "Unit tests for every node — no real LLM calls",
+    "Integration tests for full graph — mocked LLM",
+    "Eval tests for output quality — real LLM, marked @pytest.mark.eval",
+    "LangSmith tracing verified in development",
+    "All node functions follow the LangGraph constitution",
+    "State schema documented with field purposes"
+  ],
+  "constitutions_to_apply": [
+    "python",
+    "langgraph",
+    "security",
+    "testing"
+  ],
+  "agent_instructions": "Build the state schema first. Then implement nodes one at a time with unit tests. Wire the graph last. Evals must be written before the story is closed."
+}

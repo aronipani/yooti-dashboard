@@ -1,0 +1,34 @@
+{
+  "_template": "refactor-story",
+  "_instructions": "Refactors must not change observable behaviour. All existing tests must pass before and after.",
+  "story_id": "STORY-NNN",
+  "title": "Refactor: [what is being improved]",
+  "type": "refactor",
+  "priority": "P2 | P3",
+  "motivation": "Why is this refactor needed? What problem does it solve?",
+  "scope": "Which files and functions are being changed",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the refactor is applied",
+      "when": "all existing tests are run",
+      "then": "all tests pass with no behaviour changes",
+      "testable": true,
+      "test_layer": "unit"
+    }
+  ],
+  "definition_of_done": [
+    "All existing tests pass unchanged",
+    "No new behaviour introduced",
+    "Code complexity reduced (measured)",
+    "Coverage not reduced",
+    "PR body explains the improvement"
+  ],
+  "constitutions_to_apply": [
+    "security",
+    "testing",
+    "python",
+    "postgresql"
+  ],
+  "agent_instructions": "Do not change observable behaviour. If you find a bug during refactoring, open a separate bugfix story. Do not fix it inline."
+}

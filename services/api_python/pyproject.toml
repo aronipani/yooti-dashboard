@@ -1,0 +1,24 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "--cov=src --cov-report=term-missing --cov-report=json -v"
+markers = [
+    "unit: unit tests — no external services",
+    "integration: tests requiring real services",
+    "eval: LLM eval tests — nightly only",
+]
+
+[tool.coverage.report]
+fail_under = 80
+omit = ["tests/*"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+select = ["E", "W", "F", "I", "N", "UP", "B", "ANN"]
+ignore = ["ANN101", "ANN102"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]

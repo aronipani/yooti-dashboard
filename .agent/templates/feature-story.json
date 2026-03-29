@@ -1,0 +1,47 @@
+{
+  "_template": "feature-story",
+  "_instructions": "Copy this file, rename it STORY-NNN-validated.json, fill in every field. The agent cannot start without all required fields.",
+  "story_id": "STORY-NNN",
+  "title": "As a [user type], I want to [action] so that [benefit]",
+  "type": "feature",
+  "priority": "P1 | P0 | P2 | P3",
+  "affected_layers": [
+    "api",
+    "frontend",
+    "agents",
+    "batch"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "describe the starting state",
+      "when": "describe the action taken",
+      "then": "describe the expected outcome — must be measurable",
+      "testable": true,
+      "test_layer": "integration | unit | e2e"
+    }
+  ],
+  "non_functional_requirements": {
+    "performance": "e.g. API responds in < 200ms at P95",
+    "security": "e.g. endpoint requires authentication",
+    "accessibility": "e.g. form is fully keyboard accessible"
+  },
+  "definition_of_done": [
+    "All acceptance criteria have passing tests",
+    "Coverage on new code >= 90%",
+    "Security scan: 0 HIGH/CRITICAL",
+    "Accessibility: 0 axe-core violations (if frontend)",
+    "Mutation score >= 85%",
+    "PR body includes evidence package"
+  ],
+  "constitutions_to_apply": [
+    "security",
+    "testing",
+    "react",
+    "typescript",
+    "python",
+    "postgresql"
+  ],
+  "ambiguity_flags": [],
+  "estimated_complexity": "XS | S | M | L | XL"
+}

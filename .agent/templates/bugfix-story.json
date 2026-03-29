@@ -1,0 +1,42 @@
+{
+  "_template": "bugfix-story",
+  "_instructions": "Fill in root cause and reproduction steps before the agent starts. A regression test must be written first.",
+  "story_id": "STORY-NNN",
+  "title": "Fix: [description of the broken behaviour]",
+  "type": "bugfix",
+  "priority": "P0 | P1",
+  "bug_description": "What is broken and how does it manifest",
+  "reproduction_steps": [
+    "Step 1",
+    "Step 2",
+    "Expected: what should happen",
+    "Actual: what currently happens"
+  ],
+  "root_cause": "Fill in after investigation — agent needs this",
+  "affected_files": [],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the reproduction steps above are followed",
+      "when": "the fix is applied",
+      "then": "the bug no longer occurs and existing behaviour is preserved",
+      "testable": true,
+      "test_layer": "integration"
+    }
+  ],
+  "definition_of_done": [
+    "Regression test written that reproduces the bug",
+    "Regression test passes after fix",
+    "Zero other tests broken by the fix",
+    "Root cause documented in PR body",
+    "Fix is minimal — no unrelated changes",
+    "Coverage not reduced by the fix"
+  ],
+  "constitutions_to_apply": [
+    "security",
+    "testing",
+    "python",
+    "postgresql"
+  ],
+  "agent_instructions": "Write the regression test FIRST. Make it fail. Then fix the code. The regression test must be in the test suite permanently."
+}

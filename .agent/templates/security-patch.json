@@ -1,0 +1,37 @@
+{
+  "_template": "security-patch",
+  "_instructions": "Security patches have the highest priority. The vulnerability test must be written first.",
+  "story_id": "STORY-NNN",
+  "title": "Security: [CVE or vulnerability description]",
+  "type": "bugfix",
+  "subtype": "security",
+  "priority": "P0",
+  "vulnerability_description": "What is the vulnerability and how can it be exploited",
+  "cve_reference": "CVE-YYYY-NNNNN if applicable",
+  "affected_component": "which file, endpoint, or dependency",
+  "severity": "CRITICAL | HIGH | MEDIUM",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the attack vector described above is attempted",
+      "when": "the patch is applied",
+      "then": "the attack is blocked and returns an appropriate error",
+      "testable": true,
+      "test_layer": "integration"
+    }
+  ],
+  "definition_of_done": [
+    "Security test written that demonstrates the vulnerability",
+    "Security test passes (vulnerability is blocked) after patch",
+    "Snyk scan shows vulnerability resolved",
+    "Semgrep scan shows 0 findings",
+    "Security event logged appropriately",
+    "No other tests broken by the patch"
+  ],
+  "constitutions_to_apply": [
+    "security",
+    "typescript",
+    "testing"
+  ],
+  "agent_instructions": "Write a test that demonstrates the vulnerability FIRST. Confirm it fails (the vulnerability exists). Then patch. Confirm the test passes. Do not change anything outside the patch scope."
+}
