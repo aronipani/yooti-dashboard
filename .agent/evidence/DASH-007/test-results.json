@@ -1,0 +1,6 @@
+{
+  "story_id": "DASH-007",
+  "generated_at": "2026-03-29T16:50:00Z",
+  "unit": { "total": 37, "passed": 37, "failed": 0 },
+  "integration": { "total": 0, "passed": 0, "failed": 0 }
+}
