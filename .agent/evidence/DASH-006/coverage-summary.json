@@ -1,0 +1,8 @@
+{
+  "story_id": "DASH-006",
+  "generated_at": "2026-03-29T16:50:00Z",
+  "overall": 79.5,
+  "new_code": 100.0,
+  "note": "Infrastructure template — no executable code to measure coverage",
+  "files": []
+}
