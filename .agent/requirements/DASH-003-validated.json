@@ -1,0 +1,52 @@
+{
+  "story_id": "DASH-003",
+  "title": "As the dashboard I want GET /metrics/current so that the page loads with the latest sprint KPIs and alerts in a single API call",
+  "type": "aws-lambda",
+  "priority": "P0",
+  "estimated_complexity": "S",
+  "sprint": 1,
+  "affected_layers": [
+    "api",
+    "database"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "a current snapshot exists for project_id",
+      "when": "GET /metrics/current?project_id=yooti-ri is called",
+      "then": "200 returned with kpis, insights, sprint_num, last_ingested_at"
+    },
+    {
+      "id": "AC-2",
+      "given": "no snapshot exists for project_id",
+      "when": "GET /metrics/current is called",
+      "then": "404 returned with error SPRINT_NOT_FOUND"
+    },
+    {
+      "id": "AC-3",
+      "given": "project_id is missing",
+      "when": "GET /metrics/current is called",
+      "then": "400 returned with error INVALID_PROJECT_ID"
+    },
+    {
+      "id": "AC-4",
+      "given": "snapshot exists",
+      "when": "GET /metrics/current is called",
+      "then": "data retrieved using single GetItem — no Query, no Scan"
+    }
+  ],
+  "definition_of_done": [
+    "All AC passing with @mock_aws",
+    "Single GetItem confirmed — not Query or Scan",
+    "CORS headers in every response",
+    "Coverage on new code >= 90%",
+    "Security scan: 0 HIGH/CRITICAL"
+  ],
+  "constitutions": [
+    "python",
+    "aws",
+    "security",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — get_current_metrics Lambda | T002 — Unit tests all AC"
+}

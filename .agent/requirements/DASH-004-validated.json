@@ -1,0 +1,52 @@
+{
+  "story_id": "DASH-004",
+  "title": "As the sprint selector I want GET /metrics/sprints and GET /metrics/sprint/{id} so that users can browse all historical sprint data",
+  "type": "aws-lambda",
+  "priority": "P1",
+  "estimated_complexity": "M",
+  "sprint": 1,
+  "affected_layers": [
+    "api",
+    "database"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "five sprints exist for a project",
+      "when": "GET /metrics/sprints?project_id=yooti-ri is called",
+      "then": "array of five summaries returned in descending sprint_num order"
+    },
+    {
+      "id": "AC-2",
+      "given": "sprint 10 has summary and eight stories",
+      "when": "GET /metrics/sprint/10?project_id=yooti-ri is called",
+      "then": "response includes summary KPIs, phase_avg_hrs, gate_rejection_rates, escalation_breakdown, stories array"
+    },
+    {
+      "id": "AC-3",
+      "given": "sprint 99 does not exist",
+      "when": "GET /metrics/sprint/99 is called",
+      "then": "404 with error SPRINT_NOT_FOUND"
+    },
+    {
+      "id": "AC-4",
+      "given": "sprint_num is not a positive integer",
+      "when": "GET /metrics/sprint/abc is called",
+      "then": "400 with error INVALID_SPRINT_NUM"
+    }
+  ],
+  "definition_of_done": [
+    "All AC passing with @mock_aws",
+    "No Scan — Query with SK begins_with only",
+    "Results sorted descending by sprint_num",
+    "Coverage on new code >= 90%",
+    "Security scan: 0 HIGH/CRITICAL"
+  ],
+  "constitutions": [
+    "python",
+    "aws",
+    "security",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — get_sprint_list Lambda | T002 — get_sprint_detail Lambda | T003 — Unit tests all AC"
+}

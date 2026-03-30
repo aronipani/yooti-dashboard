@@ -1,0 +1,46 @@
+{
+  "story_id": "DASH-006",
+  "title": "As the system I want a SAM template wiring all Lambdas to API Gateway so that the full backend deploys with one command locally and to AWS",
+  "type": "feature",
+  "priority": "P0",
+  "estimated_complexity": "S",
+  "sprint": 1,
+  "affected_layers": [
+    "infrastructure"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the SAM template exists",
+      "when": "sam validate is run",
+      "then": "template is valid with zero errors"
+    },
+    {
+      "id": "AC-2",
+      "given": "LocalStack is running",
+      "when": "sam local start-api --env-vars env.local.json is run",
+      "then": "all six endpoints respond correctly to curl test requests"
+    },
+    {
+      "id": "AC-3",
+      "given": "Vite dev server is running with proxy config",
+      "when": "fetch to /api/metrics/current is made from browser",
+      "then": "request proxies to LocalStack and returns data — no CORS error"
+    }
+  ],
+  "definition_of_done": [
+    "sam validate passes with zero errors",
+    "All six endpoints wired in template.yaml",
+    "DynamoDB table resource with single table schema",
+    "TABLE_NAME passed as env var to all Lambdas",
+    "CORS configured for Vite dev origin",
+    "env.local.json generated for LocalStack",
+    "samconfig.toml generated for staging and production"
+  ],
+  "constitutions": [
+    "python",
+    "aws",
+    "security"
+  ],
+  "decomposition_hint": "T001 — template.yaml all Lambdas + API Gateway + DynamoDB | T002 — samconfig.toml + env.local.json + Vite proxy config"
+}

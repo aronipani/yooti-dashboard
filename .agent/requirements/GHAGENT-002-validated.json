@@ -1,0 +1,52 @@
+{
+  "story_id": "GHAGENT-002",
+  "title": "As the agent graph I want GitHub fetch nodes so that each node does one thing, returns state update dicts, and never raises uncaught exceptions",
+  "type": "agent-story",
+  "priority": "P0",
+  "estimated_complexity": "M",
+  "sprint": 2,
+  "affected_layers": [
+    "agents"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "a story ID with a merged PR on branch feature/GHAGENT-002",
+      "when": "find_pr_for_story node runs",
+      "then": "state updated with pr_number and pr_url — no exception raised"
+    },
+    {
+      "id": "AC-2",
+      "given": "GitHub API returns 403 rate limit",
+      "when": "any fetch node runs",
+      "then": "node returns state update with error_type RATE_LIMIT and reset timestamp — does not raise"
+    },
+    {
+      "id": "AC-3",
+      "given": "no PR exists for the story branch",
+      "when": "find_pr_for_story runs",
+      "then": "state updated with pr_status NO_PR_FOUND — no error"
+    },
+    {
+      "id": "AC-4",
+      "given": "PR has 3 reviews and 7 inline comments",
+      "when": "compute_metrics node runs",
+      "then": "pickup_time_hrs, review_time_hrs, pr_size_lines, review_comment_count correct in state"
+    }
+  ],
+  "definition_of_done": [
+    "Five nodes: load_stories, find_pr, fetch_pr_details, fetch_reviews_and_comments, compute_metrics",
+    "Every node returns dict — never mutates state in place",
+    "Every node catches all exceptions — returns error dict, never raises",
+    "GITHUB_TOKEN and GITHUB_REPO from os.environ — never hardcoded",
+    "All nodes tested with mocked requests.get — no real GitHub API calls",
+    "No LLM calls in any node",
+    "Coverage on new code >= 90%"
+  ],
+  "constitutions": [
+    "python",
+    "langgraph",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — nodes/find_pr.py + nodes/fetch_pr_details.py | T002 — nodes/fetch_reviews.py + nodes/compute_metrics.py + nodes/load_stories.py | T003 — Unit tests for all five nodes"
+}

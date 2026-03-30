@@ -1,0 +1,61 @@
+{
+  "story_id": "DASH-009",
+  "title": "As an engineering manager I want a six-tab React dashboard rendering real pipeline metrics so that I can make data-driven decisions about team productivity, quality, and agent efficiency",
+  "type": "feature",
+  "priority": "P1",
+  "estimated_complexity": "L",
+  "sprint": 1,
+  "affected_layers": [
+    "frontend"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "real metrics data available from API",
+      "when": "each of the six tabs is viewed",
+      "then": "all KPI cards, charts, and tables render with real data — no hardcoded values"
+    },
+    {
+      "id": "AC-2",
+      "given": "an insight alert exists in current snapshot",
+      "when": "Productivity tab loads",
+      "then": "insight strip renders with correct message and severity colour"
+    },
+    {
+      "id": "AC-3",
+      "given": "dashboard viewed on 320px screen",
+      "when": "any tab is open",
+      "then": "all content readable — no horizontal scroll, no overlapping elements"
+    },
+    {
+      "id": "AC-4",
+      "given": "a story row is clicked in Story drill-down tab",
+      "when": "click occurs",
+      "then": "GET /metrics/story/{id} called and story detail panel opens with gate timeline, phase durations, escalation log"
+    },
+    {
+      "id": "AC-5",
+      "given": "dashboard rendered",
+      "when": "axe-core scan runs",
+      "then": "zero violations"
+    }
+  ],
+  "definition_of_done": [
+    "Six tabs: Productivity, Quality, Agent efficiency, Value, DORA, Story drill-down",
+    "All charts use Chart.js with real API data",
+    "KPI trend arrows colour-coded: down-good green, up-bad red, by metric direction",
+    "Insight alerts with severity styling",
+    "Story drill-down with click-through to story detail panel",
+    "Responsive at 320px, 768px, 1280px",
+    "Accessibility: 0 axe-core violations",
+    "Coverage on new code >= 90%",
+    "Lighthouse performance >= 80"
+  ],
+  "constitutions": [
+    "react",
+    "typescript",
+    "security",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — Shared components: KPI card, chart wrapper, insight strip, trend badge | T002 — Productivity and DORA tabs | T003 — Quality and Agent efficiency tabs | T004 — Value tab + Story drill-down with detail panel"
+}

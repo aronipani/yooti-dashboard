@@ -1,0 +1,54 @@
+{
+  "story_id": "DASH-008",
+  "title": "As a dashboard user I want React fetch hooks for all API endpoints so that every tab loads real data with loading and error states",
+  "type": "feature",
+  "priority": "P1",
+  "estimated_complexity": "S",
+  "sprint": 1,
+  "affected_layers": [
+    "frontend"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "dashboard opens",
+      "when": "page loads",
+      "then": "GET /metrics/current called and KPI cards populate within 2 seconds — loading skeleton shown while fetching"
+    },
+    {
+      "id": "AC-2",
+      "given": "API returns 404",
+      "when": "any tab loads",
+      "then": "inline error state shown with retry button — page does not crash"
+    },
+    {
+      "id": "AC-3",
+      "given": "user selects sprint 9 from selector",
+      "when": "selection changes",
+      "then": "GET /metrics/sprint/9 called and all tab data updates — no full page reload"
+    },
+    {
+      "id": "AC-4",
+      "given": "dashboard running locally",
+      "when": "fetch calls are made",
+      "then": "all requests proxy to LocalStack via Vite proxy — no direct localhost:4566 URLs in component code"
+    }
+  ],
+  "definition_of_done": [
+    "Hooks: useCurrentMetrics, useSprintList, useSprintDetail, useTrends, useStoryDetail",
+    "Loading skeleton during fetch",
+    "Error state with retry for every hook",
+    "Sprint selector triggers correct API call",
+    "VITE_API_BASE_URL from .env — not hardcoded",
+    "All hooks tested with MSW — no real API calls in tests",
+    "Coverage on new code >= 90%",
+    "Accessibility: 0 axe-core violations"
+  ],
+  "constitutions": [
+    "react",
+    "typescript",
+    "security",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — API client + all five hooks | T002 — Sprint selector component | T003 — MSW handlers and hook tests"
+}

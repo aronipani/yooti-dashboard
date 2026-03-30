@@ -1,0 +1,52 @@
+{
+  "story_id": "GHAGENT-004",
+  "title": "As yooti sprint:report I want the GitHub agent invoked automatically so that PR enrichment reaches the dashboard without any manual steps",
+  "type": "feature",
+  "priority": "P1",
+  "estimated_complexity": "S",
+  "sprint": 2,
+  "affected_layers": [
+    "agents",
+    "api"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "GITHUB_TOKEN and GITHUB_REPO set in .env",
+      "when": "yooti sprint:report runs",
+      "then": "GitHub agent runs after aggregate-metrics.py and enriched metrics appear in dashboard"
+    },
+    {
+      "id": "AC-2",
+      "given": "GITHUB_TOKEN not set",
+      "when": "yooti sprint:report runs",
+      "then": "sprint:report completes normally with a warning — no error, no halt"
+    },
+    {
+      "id": "AC-3",
+      "given": "agent completes with 2 stories having no PR",
+      "when": "sprint:report prints summary",
+      "then": "output shows: '13 stories enriched from GitHub, 2 skipped (no PR found)'"
+    },
+    {
+      "id": "AC-4",
+      "given": "agent hits rate limit mid-run",
+      "when": "sprint:report is waiting",
+      "then": "message printed: 'GitHub rate limit — resuming in Xm Ys' — process does not exit"
+    }
+  ],
+  "definition_of_done": [
+    "Agent runner invoked from sprint:report after base aggregation",
+    "GITHUB_TOKEN absence handled gracefully — warning not error",
+    "Summary line printed: N enriched, N skipped",
+    "Rate limit wait message with time printed",
+    "No real GitHub or API calls in unit tests — all mocked",
+    "Coverage on new code >= 90%"
+  ],
+  "constitutions": [
+    "python",
+    "langgraph",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — agents/github_metrics/runner.py wrapping graph invocation | T002 — Integration into sprint:report with env check and summary print | T003 — Unit tests all AC with mocked graph"
+}
