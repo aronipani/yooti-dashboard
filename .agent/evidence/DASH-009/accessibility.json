@@ -1,0 +1,7 @@
+{
+  "story_id": "DASH-009",
+  "generated_at": "2026-03-29T16:50:00Z",
+  "violations": 0,
+  "passes": 74,
+  "viewports_tested": [375, 768, 1280]
+}
