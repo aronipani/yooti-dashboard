@@ -165,3 +165,30 @@ Blocking synchronous operations inside async nodes
 Graph construction inside node functions
 Direct database access in node functions — use tools
 Any node function over 50 lines (excluding docstring and logging)
+
+## Self-audit — mandatory before marking any LangGraph task COMPLETE
+
+Write results to .agent/evidence/{STORY-ID}/code-audit.md.
+
+  ARCHITECTURE
+  ☐ Every node function returns a dict — no state mutation
+  ☐ Every node has single responsibility — max 50 lines
+  ☐ Errors returned as state — return {"error": str(e)}, never raise
+  ☐ All prompts read from files in prompts/ — not hardcoded
+  ☐ structlog used on every node entry and exit
+
+  SECURITY
+  ☐ No API keys hardcoded — all from environment variables
+  ☐ No PII logged in structlog output
+  ☐ LLM responses validated before use
+
+  TESTS
+  ☐ Unit tests mock all LLM calls — no real API calls
+  ☐ Integration tests use mocked LLM responses
+  ☐ Eval tests marked with @pytest.mark.eval — not run in CI
+  ☐ Every node has at least one unit test
+
+  SCANNING
+  ☐ ruff check: 0 errors
+  ☐ mypy --strict: 0 errors
+  ☐ pytest -m "not eval": 100% passing

@@ -169,3 +169,35 @@ Any use of eval() or exec()
 Synchronous HTTP calls in async contexts (use httpx or aiohttp)
 print() in production code — use structlog
 Hardcoded credentials anywhere — use environment variables
+
+## Self-audit — mandatory before marking any Python task COMPLETE
+
+Run this checklist before marking COMPLETE.
+Write results to .agent/evidence/{STORY-ID}/code-audit.md.
+
+  SECURITY
+  ☐ No hardcoded secrets, passwords, or API keys
+  ☐ No string concatenation in SQL — parameterised only
+  ☐ Auth checks on every protected endpoint
+  ☐ No sensitive data in log output
+  ☐ Error responses never expose stack traces
+
+  CODE QUALITY
+  ☐ Every function has type annotations
+  ☐ Every public function has a docstring
+  ☐ No bare except: blocks
+  ☐ No print() debug statements
+  ☐ No TODO or FIXME in production code
+  ☐ No commented-out code blocks
+
+  TESTS
+  ☐ Test file exists for every new source file
+  ☐ No real LLM calls in unit tests — all mocked
+  ☐ No real AWS calls in unit tests — moto used
+  ☐ Each test tests one behaviour not multiple
+
+  SCANNING
+  ☐ ruff check: 0 errors
+  ☐ ruff format --check: passes
+  ☐ mypy --strict: 0 errors
+  ☐ pytest: 100% passing

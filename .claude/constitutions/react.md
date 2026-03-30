@@ -157,3 +157,43 @@ Index as key in lists — use stable unique IDs
   items.map(item => <Item key={item.id} />)                  ✓
 Nested ternaries in JSX — extract to variables
 Any component over 200 lines — split it
+
+## Self-audit — mandatory before marking any React task COMPLETE
+
+Run this checklist before marking COMPLETE.
+Write results to .agent/evidence/{STORY-ID}/code-audit.md.
+
+  SECURITY
+  ☐ No API keys or secrets in any component or hook
+  ☐ All API calls go through api-client.ts — no fetch() directly
+  ☐ No dangerouslySetInnerHTML without sanitisation
+  ☐ No sensitive data in localStorage or sessionStorage
+
+  CODE QUALITY
+  ☐ Every component has TypeScript props interface defined
+  ☐ No any type used anywhere
+  ☐ No useEffect with missing dependencies
+  ☐ No console.log debug statements
+  ☐ No inline styles — Tailwind classes only
+  ☐ Every component handles loading state
+  ☐ Every component handles error state
+  ☐ No TODO or FIXME in production code
+
+  ACCESSIBILITY
+  ☐ axe-core test in every component test file
+  ☐ axe-core asserts 0 violations
+  ☐ All images have alt text
+  ☐ All form inputs have associated labels
+  ☐ Interactive elements are keyboard navigable
+
+  TESTS
+  ☐ Test file exists for every new component
+  ☐ Loading state tested
+  ☐ Error state tested
+  ☐ No real API calls in tests — MSW or vi.mock used
+
+  SCANNING
+  ☐ eslint: 0 errors, 0 warnings
+  ☐ tsc --noEmit: 0 errors
+  ☐ vitest: 100% passing
+  ☐ axe-core: 0 violations in all component tests

@@ -119,3 +119,19 @@ Logging passwords, tokens, or card numbers
 Skipping authentication on any non-public endpoint
 Trusting user-provided IDs for authorisation
 math.random() or random.random() for security tokens (use crypto)
+
+## Self-audit — mandatory before marking any task COMPLETE
+
+Run this checklist on every file regardless of language.
+Write results to .agent/evidence/{STORY-ID}/code-audit.md.
+
+  UNIVERSAL SECURITY CHECKS
+  ☐ No secrets or API keys in any file
+  ☐ No hardcoded URLs that should be environment variables
+  ☐ No debug endpoints or admin routes without auth
+  ☐ No logging of sensitive data (passwords, tokens, PII)
+  ☐ Input validated and sanitised before use
+  ☐ Error messages never reveal internal implementation details
+  ☐ No eval() or exec() with user input
+  ☐ Snyk scan: 0 HIGH or CRITICAL findings
+  ☐ Semgrep scan: 0 findings

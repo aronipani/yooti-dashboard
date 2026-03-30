@@ -360,6 +360,9 @@ CHECKLIST — run this before every task:
     → Read .claude/constitutions/security.md NOW
     → Read .claude/constitutions/testing.md NOW
 
+  Writing a Terraform file?
+    → Read .claude/constitutions/terraform.md NOW
+
   Writing a database migration or query?
     → Read .claude/constitutions/postgresql.md NOW
     → Read .claude/constitutions/security.md NOW
@@ -485,6 +488,7 @@ AWS services:        .claude/constitutions/aws.md
   Covers: lambda, dynamodb, s3
   Rules: moto in every unit test, single table DynamoDB, batchItemFailures SQS,
          no hardcoded ARNs, Secrets Manager for credentials, LocalStack locally
+Terraform files (.tf, .tfvars, backend configs): .claude/constitutions/terraform.md
 Configuration files (.env, pyproject.toml, vitest.config): .claude/constitutions/config.md
 Docker files (Dockerfile, docker-compose.yml):             .claude/constitutions/docker.md
 
@@ -550,6 +554,10 @@ escalation is acknowledged by the developer.
 4. NO SECRETS — all config via environment variables (.env.example has the names)
 5. ZERO WARNINGS — --max-warnings 0 enforced. Fix all warnings.
 6. ESCALATE — write to .agent/escalations/ on: SCOPE_ERROR, ENV_ERROR, SPEC_AMBIGUITY, >5 iterations
+7. SCAFFOLD — if the app cannot render due to missing config files
+   (tailwind.config.js, postcss.config.js, tsconfig.json, index.html,
+   index.css, main.tsx) write .agent/escalations/[TASK-ID]-scaffold-incomplete.md
+   and stop. Do not continue if the app cannot actually run.
 
 ## Context: GREENFIELD
 - Read .claude/rules/greenfield-rules.md for the Pattern Mandate

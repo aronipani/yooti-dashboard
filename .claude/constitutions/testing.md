@@ -101,3 +101,16 @@ Tests that access the real database in unit tests
 Skipping tests without a documented reason and story reference
   it.skip('this test')                                       ✗
   it.skip('STORY-042: temporarily skipped — fix in sprint 4') ✓
+
+## Self-audit — mandatory before marking any test COMPLETE
+
+Write results to .agent/evidence/{STORY-ID}/code-audit.md.
+
+  TEST QUALITY
+  ☐ Every test has a clear Given/When/Then structure
+  ☐ Every test asserts a specific outcome — no empty assertions
+  ☐ No test depends on another test's state
+  ☐ No hardcoded test data that should be in fixtures
+  ☐ No real external services called in unit tests
+  ☐ Test names describe behaviour not implementation
+  ☐ Mutation score >= 85% on new code
