@@ -1,0 +1,27 @@
+{
+  "story_id": "DASH-001",
+  "title": "DASH-001",
+  "started_at": "2026-03-30T00:20:25.802Z",
+  "events": [
+    {
+      "at": "2026-03-30T00:20:25.813Z",
+      "phase": 6,
+      "type": "GATE",
+      "detail": "reviewed adn approved",
+      "actor": "Aroni Pani",
+      "role": "Developer",
+      "gate": "G3",
+      "decision": "APPROVED"
+    },
+    {
+      "at": "2026-03-30T00:58:40.385Z",
+      "phase": 6,
+      "type": "GATE",
+      "detail": "approved",
+      "actor": "aroni",
+      "role": "Architect",
+      "gate": "G3",
+      "decision": "APPROVED"
+    }
+  ]
+}

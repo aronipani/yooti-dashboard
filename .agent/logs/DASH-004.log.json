@@ -1,0 +1,17 @@
+{
+  "story_id": "DASH-004",
+  "title": "DASH-004",
+  "started_at": "2026-03-30T00:21:44.800Z",
+  "events": [
+    {
+      "at": "2026-03-30T00:21:44.803Z",
+      "phase": 6,
+      "type": "GATE",
+      "detail": "reviewed and approved",
+      "actor": "apani",
+      "role": "Developer",
+      "gate": "G3",
+      "decision": "APPROVED"
+    }
+  ]
+}

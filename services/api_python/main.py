@@ -6,9 +6,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import structlog
 
-from .src.config import settings
-from .src.middleware.logging import LoggingMiddleware
-from .src.routes.health import router as health_router
+from src.config import settings
+from src.middleware.logging import LoggingMiddleware
+from src.routes.health import router as health_router
 
 log = structlog.get_logger()
 

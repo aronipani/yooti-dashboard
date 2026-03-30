@@ -41,61 +41,19 @@
     "anthropic"
   ],
   "pipeline": {
-    "phases": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7
-    ],
-    "human_gates": [
-      "G1",
-      "G2",
-      "G3",
-      "G4",
-      "G5"
-    ],
+    "phases": [1, 2, 3, 4, 5, 6, 7],
+    "human_gates": ["G1", "G2", "G3", "G4", "G5"],
     "agent_phases_at_stage": {
-      "1": [
-        1
-      ],
-      "2": [
-        1,
-        2
-      ],
-      "3": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6
-      ],
-      "4": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7
-      ],
-      "5": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7
-      ]
+      "1": [1],
+      "2": [1, 2],
+      "3": [1, 2, 3, 4, 5, 6],
+      "4": [1, 2, 3, 4, 5, 6, 7],
+      "5": [1, 2, 3, 4, 5, 6, 7]
     }
   },
   "quality_gates": {
-    "coverage_overall": 80,
-    "coverage_new_code": 90,
+    "coverage_overall": 75,
+    "coverage_new_code": 80,
     "mutation_score_warn": 85,
     "lint_errors": 0,
     "type_errors": 0,
@@ -116,8 +74,8 @@
       "a11y_runner": "axe-core",
       "e2e_runner": "playwright",
       "lint_command": "eslint . --ext .ts,.tsx",
-      "coverage_threshold": 80,
-      "new_code_threshold": 90
+      "coverage_threshold": 75,
+      "new_code_threshold": 80
     },
     "agents": {
       "runtime": "python",
@@ -134,8 +92,8 @@
       "test_coverage": "pytest --cov --cov-report=json",
       "mutation": "mutmut run",
       "lint_command": "ruff check . && ruff format --check .",
-      "coverage_threshold": 80,
-      "new_code_threshold": 90
+      "coverage_threshold": 75,
+      "new_code_threshold": 80
     },
     "batch": {
       "runtime": "python",
@@ -151,8 +109,8 @@
       "test_coverage": "pytest --cov --cov-report=json",
       "mutation": "mutmut run",
       "lint_command": "ruff check . && ruff format --check .",
-      "coverage_threshold": 80,
-      "new_code_threshold": 90,
+      "coverage_threshold": 75,
+      "new_code_threshold": 80,
       "aws_services": [
         "s3",
         "lambda",

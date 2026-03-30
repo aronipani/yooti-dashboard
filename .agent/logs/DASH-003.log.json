@@ -1,0 +1,17 @@
+{
+  "story_id": "DASH-003",
+  "title": "DASH-003",
+  "started_at": "2026-03-30T00:21:24.542Z",
+  "events": [
+    {
+      "at": "2026-03-30T00:21:24.545Z",
+      "phase": 6,
+      "type": "GATE",
+      "detail": "reviewed and approved",
+      "actor": "Aroni",
+      "role": "Developer",
+      "gate": "G3",
+      "decision": "APPROVED"
+    }
+  ]
+}

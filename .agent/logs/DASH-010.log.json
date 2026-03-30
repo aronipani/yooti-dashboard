@@ -1,0 +1,33 @@
+{
+  "story_id": "DASH-010",
+  "title": " Wire dashboard tabs to real API hooks",
+  "started_at": "2026-03-30T03:56:04.372Z",
+  "events": [
+    {
+      "at": "2026-03-30T03:56:04.373Z",
+      "phase": 1,
+      "type": "PHASE_START",
+      "detail": "Requirements ingestion started"
+    },
+    {
+      "at": "2026-03-30T03:56:04.375Z",
+      "phase": 1,
+      "type": "AGENT_ACTION",
+      "detail": "Story parsed → DASH-010-validated.json",
+      "output": {
+        "ac_count": 1,
+        "ambiguity_flags": 0
+      }
+    },
+    {
+      "at": "2026-03-30T12:25:02.242Z",
+      "phase": 6,
+      "type": "GATE",
+      "detail": "reviewed and approved",
+      "actor": "Aroni",
+      "role": "Architect",
+      "gate": "G3",
+      "decision": "APPROVED"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pth
+*.egg-info/
+*.dist-info/
+
+# pip install -t . artifacts
+bin/
+include/
+lib/
+librt/
+
+# Coverage
+.coverage
+coverage.json
+htmlcov/
+
+# Virtual env
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/

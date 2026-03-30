@@ -41,7 +41,9 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         snapshot.pop("SK", None)
 
         return success(200, snapshot)
-    except RepositoryError:
-        return error(500, "INTERNAL_ERROR", "An internal error occurred")
-    except Exception:
-        return error(500, "INTERNAL_ERROR", "An internal error occurred")
+    except RepositoryError as exc:
+        log.error("handler.repo_error", error=str(exc))
+        return error(500, "INTERNAL_ERROR", f"Debug repo: {exc}")
+    except Exception as exc:
+        log.error("handler.unhandled_error", error=str(exc), error_type=type(exc).__name__)
+        return error(500, "INTERNAL_ERROR", f"Debug: {type(exc).__name__}: {exc}")
