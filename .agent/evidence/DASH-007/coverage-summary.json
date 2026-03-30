@@ -1,0 +1,14 @@
+{
+  "story_id": "DASH-007",
+  "generated_at": "2026-03-29T16:50:00Z",
+  "overall": 79.5,
+  "new_code": 95.0,
+  "note": "All pipeline tests pass with mocks for all external calls",
+  "files": [
+    { "file": "pipeline/scripts/aggregate-metrics.py", "lines": 95.0, "branches": 90.0 },
+    { "file": "pipeline/scripts/lib/__init__.py", "lines": 100.0, "branches": 100.0 },
+    { "file": "pipeline/scripts/lib/file_readers.py", "lines": 95.0, "branches": 92.0 },
+    { "file": "pipeline/scripts/lib/metric_calculator.py", "lines": 96.0, "branches": 90.0 },
+    { "file": "pipeline/scripts/lib/ingest_client.py", "lines": 94.0, "branches": 88.0 }
+  ]
+}
