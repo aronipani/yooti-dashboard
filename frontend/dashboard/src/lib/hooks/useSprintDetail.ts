@@ -10,7 +10,7 @@ export function useSprintDetail(projectId: string, sprintNum: number | null) {
     queryKey: ['sprintDetail', projectId, sprintNum],
     queryFn: async (): Promise<SprintDetail> => {
       const { data } = await apiClient.get<SprintDetail>(
-        `/sprints/${sprintNum}`,
+        `/metrics/sprint/${sprintNum}`,
         { params: { project_id: projectId } }
       )
       return data

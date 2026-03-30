@@ -1,0 +1,8 @@
+{
+  "story_id": "DASH-010",
+  "generated_at": "2026-03-30T05:20:00Z",
+  "violations": 0,
+  "passes": 108,
+  "viewports_tested": [375, 768, 1280],
+  "note": "All 108 tests include axe-core accessibility checks via expectNoA11yViolations"
+}

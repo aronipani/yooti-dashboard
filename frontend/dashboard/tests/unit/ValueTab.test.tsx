@@ -1,22 +1,81 @@
 /**
  * Unit tests for the ValueTab component.
- * Tests loading state and accessibility.
+ * Tests loading, data rendering, error states, and accessibility.
  */
 import React from 'react'
-import { describe, it, expect } from 'vitest'
-import { screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, expectNoA11yViolations } from '../helpers/render'
 import { ValueTab } from '../../src/pages/ValueTab'
+import { apiClient } from '../../src/lib/api-client'
+import type { CurrentSnapshot, TrendPoint } from '../../src/lib/types'
+
+vi.mock('../../src/lib/api-client', () => ({
+  apiClient: { get: vi.fn(), post: vi.fn() },
+}))
+
+const mockedGet = vi.mocked(apiClient.get)
+
+function makeSnapshot(overrides: Partial<CurrentSnapshot> = {}): CurrentSnapshot {
+  return {
+    sprint_num: 3, project_id: 'proj-001', cycle_time_avg_days: 2.5,
+    sprint_completion_pct: 85, stories_shipped: 8, stories_committed: 10,
+    coverage_new_code_avg: 92, regression_rate_pct: 0, escalation_rate_pct: 5,
+    deploy_frequency: 3, agent_exec_hrs_avg: 1.2, human_wait_hrs_avg: 4.0,
+    iteration_avg: 2.1, correction_rate_pct: 10, constitution_pass_pct: 100,
+    mutation_score_avg: 78, gate_rejection_rates: {}, escalation_breakdown: {},
+    phase_avg_hrs: {}, insight_alerts: [], last_ingested_at: '2026-03-29T00:00:00Z',
+    ...overrides,
+  }
+}
 
 describe('ValueTab', () => {
-  it('shows loading skeleton when no data is available', () => {
-    renderWithProviders(<ValueTab />)
+  beforeEach(() => { vi.clearAllMocks() })
 
+  it('shows loading skeleton while fetching', () => {
+    mockedGet.mockReturnValue(new Promise(() => {}))
+    renderWithProviders(<ValueTab projectId="proj-001" />)
     expect(screen.getByRole('status', { name: 'Loading content' })).toBeInTheDocument()
   })
 
-  it('has no accessibility violations in loading state', async () => {
-    const { container } = renderWithProviders(<ValueTab />)
+  it('renders value KPI cards with real data', async () => {
+    mockedGet.mockImplementation((url: string) => {
+      if (url === '/metrics/current') return Promise.resolve({ data: makeSnapshot() })
+      if (url === '/trends') return Promise.resolve({ data: [] })
+      return Promise.reject(new Error('unexpected'))
+    })
+
+    renderWithProviders(<ValueTab projectId="proj-001" />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Stories Shipped')).toBeInTheDocument()
+    })
+
+    expect(screen.getByText('8')).toBeInTheDocument()
+    expect(screen.getByText('85%')).toBeInTheDocument()
+  })
+
+  it('shows error state when API fails', async () => {
+    mockedGet.mockRejectedValue(new Error('fail'))
+    renderWithProviders(<ValueTab projectId="proj-001" />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    })
+  })
+
+  it('has no accessibility violations with data', async () => {
+    mockedGet.mockImplementation((url: string) => {
+      if (url === '/metrics/current') return Promise.resolve({ data: makeSnapshot() })
+      if (url === '/trends') return Promise.resolve({ data: [] })
+      return Promise.reject(new Error('unexpected'))
+    })
+
+    const { container } = renderWithProviders(<ValueTab projectId="proj-001" />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Stories Shipped')).toBeInTheDocument()
+    })
 
     await expectNoA11yViolations(container)
   })

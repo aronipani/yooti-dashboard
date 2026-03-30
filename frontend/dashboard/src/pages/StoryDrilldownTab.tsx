@@ -1,59 +1,91 @@
 /**
- * StoryDrilldownTab — displays story list with click-through to detail panel.
- * Combines StoryTable and StoryDetailPanel for per-story drill-down.
+ * StoryDrilldownTab — displays story list from useSprintDetail with click-through
+ * to detail panel via useStoryDetail.
  */
 import { useState } from 'react'
 import { StoryTable, type StoryRow } from '../components/StoryTable'
 import { StoryDetailPanel, type StoryDetail } from '../components/StoryDetailPanel'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
 import { ErrorState } from '../components/ErrorState'
+import { useSprintDetail, useStoryDetail } from '../lib/hooks'
+import type { StoryMetrics } from '../lib/types'
 
-interface StoryDrilldownData {
-  stories: StoryRow[]
-  storyDetails: Record<string, StoryDetail>
+export interface StoryDrilldownTabProps {
+  projectId: string
+  selectedSprint: number | null
 }
 
-/** Placeholder hook — will be replaced by useSprintDetail + useStoryDetail */
-function usePlaceholderStoryDrilldown(): {
-  data: StoryDrilldownData | undefined
-  isLoading: boolean
-  isError: boolean
-  error: Error | null
-  refetch: () => void
-} {
+function toStoryRow(story: StoryMetrics): StoryRow {
   return {
-    data: undefined,
-    isLoading: false,
-    isError: false,
-    error: null,
-    refetch: () => undefined,
+    id: story.story_id,
+    title: story.story_id,
+    status: story.status,
+    points: story.iteration_count,
+    cycleTimeDays: Math.round((story.cycle_time_hrs / 24) * 10) / 10,
+    assignee: story.escalation_type ?? 'Agent',
   }
 }
 
-export function StoryDrilldownTab() {
+function toStoryDetail(story: StoryMetrics): StoryDetail {
+  return {
+    id: story.story_id,
+    title: story.story_id,
+    status: story.status,
+    points: story.iteration_count,
+    assignee: story.escalation_type ?? 'Agent',
+    cycleTimeDays: Math.round((story.cycle_time_hrs / 24) * 10) / 10,
+    agentIterations: story.iteration_count,
+    acPassed: 0,
+    acTotal: 0,
+    testCoverage: story.coverage_new_code_pct,
+    timeline: Object.entries(story.gate_timestamps)
+      .filter(([, ts]) => ts !== null)
+      .map(([gate, ts]) => ({ date: ts as string, event: `${gate} approved` })),
+  }
+}
+
+export function StoryDrilldownTab({ projectId, selectedSprint }: StoryDrilldownTabProps) {
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null)
-  const { data, isLoading, isError, error, refetch } = usePlaceholderStoryDrilldown()
+
+  const {
+    data: sprintDetail,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useSprintDetail(projectId, selectedSprint)
+
+  const { data: storyMetrics } = useStoryDetail(
+    projectId,
+    selectedSprint,
+    selectedStoryId,
+  )
+
+  if (selectedSprint === null) {
+    return (
+      <p className="py-8 text-center text-sm text-gray-500">
+        Please select a sprint from the selector above to view stories.
+      </p>
+    )
+  }
 
   if (isLoading) return <LoadingSkeleton variant="table" count={5} />
-  if (isError) return <ErrorState message={error?.message ?? 'Failed to load stories'} onRetry={refetch} />
-  if (!data) return <LoadingSkeleton variant="table" count={5} />
+  if (isError) return <ErrorState message={error?.message ?? 'Failed to load stories'} onRetry={() => { void refetch() }} />
+  if (!sprintDetail) return <LoadingSkeleton variant="table" count={5} />
 
-  const selectedStory = selectedStoryId
-    ? data.storyDetails[selectedStoryId] ?? null
-    : null
+  const stories = sprintDetail.stories.map(toStoryRow)
+  const selectedStory = storyMetrics ? toStoryDetail(storyMetrics) : null
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
-      {/* Story Table */}
       <div className="flex-1">
         <StoryTable
-          stories={data.stories}
+          stories={stories}
           onSelect={(id) => setSelectedStoryId(id)}
           selectedId={selectedStoryId ?? undefined}
         />
       </div>
 
-      {/* Detail Panel */}
       {selectedStory && (
         <div className="w-full lg:w-96">
           <StoryDetailPanel

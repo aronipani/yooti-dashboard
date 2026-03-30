@@ -1,0 +1,122 @@
+{
+  "story_id": "DASH-010",
+  "title": "Wire dashboard tabs to real API hooks",
+  "type": "bugfix",
+  "priority": "P0",
+  "sprint": 1,
+  "affected_layers": ["frontend"],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the dashboard is open",
+      "when": "any tab loads",
+      "then": "it calls the real API hook from DASH-008, not a placeholder hook",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-2",
+      "given": "the API returns data",
+      "when": "a tab renders",
+      "then": "real metrics are displayed in KPI cards and charts, not skeleton loading states",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-3",
+      "given": "the API is unreachable or returns an error",
+      "when": "a tab loads",
+      "then": "an error state is shown with a message, not an infinite skeleton",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-4",
+      "given": "the user selects a different sprint from the sprint selector",
+      "when": "the sprint selector value changes",
+      "then": "all tabs refresh and display data for the selected sprint",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-5",
+      "given": "the Productivity tab is active",
+      "when": "data loads",
+      "then": "it displays velocity, cycle time, and throughput from useCurrentMetrics",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-6",
+      "given": "the DORA tab is active",
+      "when": "data loads",
+      "then": "it displays deployment frequency, lead time, change failure rate, and MTTR from useCurrentMetrics",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-7",
+      "given": "the Quality tab is active",
+      "when": "data loads",
+      "then": "it displays test coverage, mutation score, and security findings from useCurrentMetrics",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-8",
+      "given": "the Agent Efficiency tab is active",
+      "when": "data loads",
+      "then": "it displays iterations per story, escalation rate, and phase durations from useCurrentMetrics",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-9",
+      "given": "the Value tab is active",
+      "when": "data loads",
+      "then": "it displays stories completed, points delivered, and trend data from useTrends",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-10",
+      "given": "the Story Drill-down tab is active",
+      "when": "data loads",
+      "then": "it displays the story list from useSprintDetail and allows clicking into a story for detail via useStoryDetail",
+      "testable": true,
+      "test_layer": "unit"
+    }
+  ],
+  "non_functional_requirements": {
+    "performance": "Each tab renders within 200ms of data returning from the hook",
+    "accessibility": "Loading and error states have appropriate aria-live announcements",
+    "security": "No API credentials or project IDs hardcoded in tab components"
+  },
+  "definition_of_done": [
+    "All 6 tabs use real hooks from src/lib/hooks/ not placeholder hooks",
+    "All AC have passing unit tests",
+    "Error states render correctly when API returns error",
+    "Sprint selector change triggers data refresh on all tabs",
+    "Coverage on new code >= 80%",
+    "No TypeScript errors",
+    "No ESLint errors"
+  ],
+  "constitutions_to_apply": ["react", "typescript", "testing"],
+  "affected_components": [
+    "src/pages/ProductivityTab.tsx",
+    "src/pages/DoraTab.tsx",
+    "src/pages/QualityTab.tsx",
+    "src/pages/AgentEfficiencyTab.tsx",
+    "src/pages/ValueTab.tsx",
+    "src/pages/StoryDrilldownTab.tsx"
+  ],
+  "hooks_to_wire": {
+    "useCurrentMetrics": ["ProductivityTab", "DoraTab", "QualityTab", "AgentEfficiencyTab"],
+    "useTrends": ["ValueTab"],
+    "useSprintList": ["SprintSelector"],
+    "useSprintDetail": ["StoryDrilldownTab"],
+    "useStoryDetail": ["StoryDrilldownTab"]
+  },
+  "estimated_complexity": "S",
+  "ambiguity_flags": []
+}

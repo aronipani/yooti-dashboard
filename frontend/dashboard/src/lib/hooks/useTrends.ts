@@ -14,7 +14,7 @@ export function useTrends(projectId: string, metric?: string) {
         params.metric = metric
       }
       const { data } = await apiClient.get<TrendPoint[]>(
-        '/trends',
+        '/metrics/trends',
         { params }
       )
       return data
