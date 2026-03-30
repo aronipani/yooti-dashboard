@@ -1,0 +1,81 @@
+{
+  "story_id": "DASH-015",
+  "title": "Terraform SSM Parameter Store module",
+  "type": "feature",
+  "priority": "P0",
+  "sprint": 2,
+  "affected_layers": [
+    "infra"
+  ],
+  "description": "Terraform module that creates SSM Parameter Store entries for all environment variables the Lambda functions need. Values are placeholders — real values are set manually after apply. Secrets use SecureString type.",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the module is applied",
+      "when": "listing SSM parameters",
+      "then": "/{project}/{env}/DYNAMODB_TABLE exists as a String parameter",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-2",
+      "given": "the module is applied",
+      "when": "listing SSM parameters",
+      "then": "/{project}/{env}/ANTHROPIC_API_KEY exists as a SecureString parameter",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-3",
+      "given": "the module is applied",
+      "when": "listing SSM parameters",
+      "then": "/{project}/{env}/CORS_ORIGINS and /{project}/{env}/AWS_REGION exist as String parameters",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-4",
+      "given": "the module is applied",
+      "when": "checking parameter values",
+      "then": "all values are placeholders (CHANGE_ME or similar) — no real secrets are committed",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-5",
+      "given": "the module is applied",
+      "when": "checking the README",
+      "then": "it documents the command to set real values for each parameter",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-6",
+      "given": "the module exists",
+      "when": "running checkov on infra/modules/ssm/",
+      "then": "0 HIGH or CRITICAL findings",
+      "testable": true,
+      "test_layer": "unit"
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "ANTHROPIC_API_KEY and any other secrets must be SecureString. Never commit real values. Placeholder values must be obviously fake."
+  },
+  "definition_of_done": [
+    "All required parameters created with correct types",
+    "SecureString used for secrets",
+    "Placeholder values only — no real secrets",
+    "README documents how to set real values",
+    "terraform validate passes",
+    "checkov scan: 0 HIGH/CRITICAL findings"
+  ],
+  "constitutions_to_apply": [
+    "terraform"
+  ],
+  "depends_on": [
+    "DASH-011"
+  ],
+  "agent_instructions": "Read .claude/constitutions/terraform.md before writing any .tf files. Never use real secret values — always use CHANGE_ME or similar placeholder. SecureString type must be used for ANTHROPIC_API_KEY and any other credentials. Write a README section documenting the aws ssm put-parameter commands to set real values.",
+  "estimated_complexity": "S",
+  "ambiguity_flags": []
+}

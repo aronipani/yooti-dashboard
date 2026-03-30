@@ -1,0 +1,79 @@
+{
+  "story_id": "DASH-011",
+  "title": "Add Terraform scaffold and state backend",
+  "type": "feature",
+  "priority": "P0",
+  "sprint": 2,
+  "affected_layers": [
+    "infra"
+  ],
+  "description": "Create the Terraform infra/ folder structure, module skeletons, dev and prod environments, and a bootstrap script to create the S3 state bucket and DynamoDB lock table. Does not touch template.yaml or any existing application files.",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the infra/ folder does not exist",
+      "when": "the scaffold is created",
+      "then": "infra/modules/ contains dynamodb/, lambda/, api-gateway/, s3-cloudfront/, ssm/, vpc/ directories each with main.tf, variables.tf, outputs.tf, versions.tf",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-2",
+      "given": "the scaffold is created",
+      "when": "listing infra/environments/",
+      "then": "dev/ and prod/ both exist each containing main.tf, variables.tf, terraform.tfvars, backend.tf",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-3",
+      "given": "the bootstrap script exists",
+      "when": "running infra/bootstrap/create-state-backend.sh --dry-run",
+      "then": "it prints the aws commands it would run without executing them",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-4",
+      "given": "the scaffold is created",
+      "when": "running terraform init in infra/environments/dev/",
+      "then": "it succeeds with no errors",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-5",
+      "given": "the scaffold is created",
+      "when": "checking .gitignore",
+      "then": ".terraform/, *.tfstate, *.tfstate.backup are all listed",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-6",
+      "given": "the scaffold is created",
+      "when": "running checkov on infra/",
+      "then": "0 HIGH or CRITICAL findings",
+      "testable": true,
+      "test_layer": "unit"
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "No secrets or account IDs hardcoded in any .tf file. State bucket must have versioning and encryption enabled.",
+    "compliance": "All resources must follow naming convention: {project}-{environment}-{resource}"
+  },
+  "definition_of_done": [
+    "infra/ folder structure created with all modules and environments",
+    "bootstrap script created and executable",
+    ".gitignore updated for Terraform files",
+    "terraform init succeeds in dev environment",
+    "checkov scan: 0 HIGH/CRITICAL findings",
+    "Coverage on new code >= 80%"
+  ],
+  "constitutions_to_apply": [
+    "terraform"
+  ],
+  "agent_instructions": "Read .claude/constitutions/terraform.md before writing any .tf files. If the constitution file does not exist, stop and write an escalation — do not proceed without it. Do not modify template.yaml or any files outside infra/, scripts/, .github/, and .gitignore.",
+  "estimated_complexity": "M",
+  "ambiguity_flags": []
+}

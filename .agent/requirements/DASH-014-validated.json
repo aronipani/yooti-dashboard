@@ -1,0 +1,82 @@
+{
+  "story_id": "DASH-014",
+  "title": "Terraform S3 and CloudFront module for React frontend",
+  "type": "feature",
+  "priority": "P0",
+  "sprint": 2,
+  "affected_layers": [
+    "infra"
+  ],
+  "description": "Terraform module for React frontend hosting. Private S3 bucket with versioning and CloudFront distribution using Origin Access Control (OAC). HTTPS enforced, custom error page for SPA routing.",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the module is applied",
+      "when": "checking the S3 bucket",
+      "then": "public access is blocked on all 4 settings and the bucket is not publicly accessible",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-2",
+      "given": "the module is applied",
+      "when": "checking the CloudFront distribution",
+      "then": "it uses Origin Access Control (OAC) not Origin Access Identity (OAI)",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-3",
+      "given": "the module is applied",
+      "when": "accessing the CloudFront URL over HTTP",
+      "then": "it redirects to HTTPS with a 301 response",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-4",
+      "given": "the module is applied",
+      "when": "accessing a non-existent path on the CloudFront URL",
+      "then": "it returns index.html with a 200 status code for SPA routing",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-5",
+      "given": "the module is applied",
+      "when": "checking the S3 bucket",
+      "then": "versioning is enabled",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-6",
+      "given": "the module exists",
+      "when": "running checkov on infra/modules/s3-cloudfront/",
+      "then": "0 HIGH or CRITICAL findings",
+      "testable": true,
+      "test_layer": "unit"
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "S3 bucket must block all public access. CloudFront must use OAC. TLS 1.2 minimum. WAF optional for prod.",
+    "performance": "CloudFront cache TTL: 1 year for hashed assets, no-cache for index.html."
+  },
+  "definition_of_done": [
+    "S3 bucket private with versioning enabled",
+    "CloudFront uses OAC not OAI",
+    "HTTPS enforced with HTTP redirect",
+    "Custom error page routes all 404s to index.html",
+    "terraform validate passes",
+    "checkov scan: 0 HIGH/CRITICAL findings"
+  ],
+  "constitutions_to_apply": [
+    "terraform"
+  ],
+  "depends_on": [
+    "DASH-011"
+  ],
+  "agent_instructions": "Read .claude/constitutions/terraform.md before writing any .tf files. Use OAC not OAI — OAI is deprecated. The S3 bucket must have zero public access. The CloudFront error page must return 200 not 404 for /index.html to support React Router.",
+  "estimated_complexity": "M",
+  "ambiguity_flags": []
+}

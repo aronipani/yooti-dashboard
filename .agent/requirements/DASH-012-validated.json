@@ -1,0 +1,83 @@
+{
+  "story_id": "DASH-012",
+  "title": "Terraform DynamoDB module",
+  "type": "feature",
+  "priority": "P0",
+  "sprint": 2,
+  "affected_layers": [
+    "infra"
+  ],
+  "description": "Terraform module that creates the yooti-metrics DynamoDB table matching the SAM definition in template.yaml exactly. Single-table design, PAY_PER_REQUEST billing, TTL enabled, GSI-1 on project_id + updated_at.",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the module is applied",
+      "when": "describing the DynamoDB table",
+      "then": "it has PK (HASH) and SK (RANGE) as the key schema matching template.yaml exactly",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-2",
+      "given": "the module is applied",
+      "when": "describing the DynamoDB table",
+      "then": "GSI-1 exists on project_id (HASH) and updated_at (RANGE) with ALL projection",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-3",
+      "given": "the module is applied",
+      "when": "describing the DynamoDB table",
+      "then": "TTL is enabled on the ttl attribute",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-4",
+      "given": "the module is applied",
+      "when": "listing table tags",
+      "then": "Project, Environment, and ManagedBy=terraform tags are present",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-5",
+      "given": "the module exists",
+      "when": "running checkov on infra/modules/dynamodb/",
+      "then": "0 HIGH or CRITICAL findings",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-6",
+      "given": "the module exists",
+      "when": "running terraform validate",
+      "then": "validation succeeds with no errors",
+      "testable": true,
+      "test_layer": "unit"
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "Point-in-time recovery enabled. Server-side encryption enabled. No public access.",
+    "compliance": "Table name must follow naming convention: {project}-{environment}-metrics"
+  },
+  "definition_of_done": [
+    "Module creates table with correct key schema matching template.yaml",
+    "GSI-1 configured correctly",
+    "TTL enabled on ttl attribute",
+    "PITR and encryption enabled",
+    "All resources tagged correctly",
+    "terraform validate passes",
+    "checkov scan: 0 HIGH/CRITICAL findings"
+  ],
+  "constitutions_to_apply": [
+    "terraform"
+  ],
+  "depends_on": [
+    "DASH-011"
+  ],
+  "agent_instructions": "Read template.yaml before writing the module — the DynamoDB resource defined there is the source of truth. Mirror it exactly in Terraform. Read .claude/constitutions/terraform.md before writing any .tf files.",
+  "estimated_complexity": "S",
+  "ambiguity_flags": []
+}

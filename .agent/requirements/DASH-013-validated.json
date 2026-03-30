@@ -1,0 +1,83 @@
+{
+  "story_id": "DASH-013",
+  "title": "Terraform Lambda and API Gateway module",
+  "type": "feature",
+  "priority": "P0",
+  "sprint": 2,
+  "affected_layers": [
+    "infra"
+  ],
+  "description": "Terraform modules for all 6 Lambda functions and the API Gateway REST API, mirroring template.yaml. IAM roles with least-privilege DynamoDB permissions. Environment variables wired from SSM Parameter Store.",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "the module is applied",
+      "when": "listing Lambda functions",
+      "then": "all 6 functions exist: get_current_metrics, ingest_metrics, get_sprint_list, get_sprint_detail, get_trends, get_story_detail",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-2",
+      "given": "the module is applied",
+      "when": "checking Lambda IAM roles",
+      "then": "each role grants only the DynamoDB actions it needs — no Action=[*] or Resource=[*]",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-3",
+      "given": "the module is applied",
+      "when": "listing API Gateway routes",
+      "then": "all 6 routes match the SAM template exactly: GET /metrics/current, POST /metrics/ingest, GET /metrics/sprints, GET /metrics/sprint/{num}, GET /metrics/trends, GET /metrics/story/{id}",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-4",
+      "given": "the module is applied",
+      "when": "checking Lambda environment variables",
+      "then": "DYNAMODB_TABLE and AWS_REGION are set from SSM Parameter Store references",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-5",
+      "given": "the module exists",
+      "when": "running checkov on infra/modules/lambda/ and infra/modules/api-gateway/",
+      "then": "0 HIGH or CRITICAL findings",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-6",
+      "given": "the module exists",
+      "when": "running terraform validate",
+      "then": "validation succeeds with no errors",
+      "testable": true,
+      "test_layer": "unit"
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "Lambda execution roles use least privilege. No inline policies with wildcard actions. API Gateway has throttling configured.",
+    "performance": "Lambda memory set to 256MB for all functions. Timeout set to 30 seconds."
+  },
+  "definition_of_done": [
+    "All 6 Lambda functions defined in module",
+    "IAM roles with least-privilege permissions",
+    "API Gateway routes match template.yaml exactly",
+    "Environment variables wired from SSM",
+    "terraform validate passes",
+    "checkov scan: 0 HIGH/CRITICAL findings"
+  ],
+  "constitutions_to_apply": [
+    "terraform"
+  ],
+  "depends_on": [
+    "DASH-011",
+    "DASH-012"
+  ],
+  "agent_instructions": "Read template.yaml before writing the module — it is the source of truth for Lambda handlers, routes, and IAM permissions. Mirror it exactly. Read .claude/constitutions/terraform.md before writing any .tf files. Do not use Action=[*] or Resource=[*] in any IAM policy.",
+  "estimated_complexity": "M",
+  "ambiguity_flags": []
+}

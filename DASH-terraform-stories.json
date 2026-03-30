@@ -1,0 +1,526 @@
+[
+  {
+    "story_id": "DASH-011",
+    "title": "Add Terraform scaffold and state backend",
+    "type": "feature",
+    "priority": "P0",
+    "sprint": 2,
+    "affected_layers": ["infra"],
+    "description": "Create the Terraform infra/ folder structure, module skeletons, dev and prod environments, and a bootstrap script to create the S3 state bucket and DynamoDB lock table. Does not touch template.yaml or any existing application files.",
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "the infra/ folder does not exist",
+        "when": "the scaffold is created",
+        "then": "infra/modules/ contains dynamodb/, lambda/, api-gateway/, s3-cloudfront/, ssm/, vpc/ directories each with main.tf, variables.tf, outputs.tf, versions.tf",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-2",
+        "given": "the scaffold is created",
+        "when": "listing infra/environments/",
+        "then": "dev/ and prod/ both exist each containing main.tf, variables.tf, terraform.tfvars, backend.tf",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-3",
+        "given": "the bootstrap script exists",
+        "when": "running infra/bootstrap/create-state-backend.sh --dry-run",
+        "then": "it prints the aws commands it would run without executing them",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-4",
+        "given": "the scaffold is created",
+        "when": "running terraform init in infra/environments/dev/",
+        "then": "it succeeds with no errors",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-5",
+        "given": "the scaffold is created",
+        "when": "checking .gitignore",
+        "then": ".terraform/, *.tfstate, *.tfstate.backup are all listed",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-6",
+        "given": "the scaffold is created",
+        "when": "running checkov on infra/",
+        "then": "0 HIGH or CRITICAL findings",
+        "testable": true,
+        "test_layer": "unit"
+      }
+    ],
+    "non_functional_requirements": {
+      "security": "No secrets or account IDs hardcoded in any .tf file. State bucket must have versioning and encryption enabled.",
+      "compliance": "All resources must follow naming convention: {project}-{environment}-{resource}"
+    },
+    "definition_of_done": [
+      "infra/ folder structure created with all modules and environments",
+      "bootstrap script created and executable",
+      ".gitignore updated for Terraform files",
+      "terraform init succeeds in dev environment",
+      "checkov scan: 0 HIGH/CRITICAL findings",
+      "Coverage on new code >= 80%"
+    ],
+    "constitutions_to_apply": ["terraform"],
+    "agent_instructions": "Read .claude/constitutions/terraform.md before writing any .tf files. If the constitution file does not exist, stop and write an escalation — do not proceed without it. Do not modify template.yaml or any files outside infra/, scripts/, .github/, and .gitignore.",
+    "estimated_complexity": "M",
+    "ambiguity_flags": []
+  },
+  {
+    "story_id": "DASH-012",
+    "title": "Terraform DynamoDB module",
+    "type": "feature",
+    "priority": "P0",
+    "sprint": 2,
+    "affected_layers": ["infra"],
+    "description": "Terraform module that creates the yooti-metrics DynamoDB table matching the SAM definition in template.yaml exactly. Single-table design, PAY_PER_REQUEST billing, TTL enabled, GSI-1 on project_id + updated_at.",
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "the module is applied",
+        "when": "describing the DynamoDB table",
+        "then": "it has PK (HASH) and SK (RANGE) as the key schema matching template.yaml exactly",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-2",
+        "given": "the module is applied",
+        "when": "describing the DynamoDB table",
+        "then": "GSI-1 exists on project_id (HASH) and updated_at (RANGE) with ALL projection",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-3",
+        "given": "the module is applied",
+        "when": "describing the DynamoDB table",
+        "then": "TTL is enabled on the ttl attribute",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-4",
+        "given": "the module is applied",
+        "when": "listing table tags",
+        "then": "Project, Environment, and ManagedBy=terraform tags are present",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-5",
+        "given": "the module exists",
+        "when": "running checkov on infra/modules/dynamodb/",
+        "then": "0 HIGH or CRITICAL findings",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-6",
+        "given": "the module exists",
+        "when": "running terraform validate",
+        "then": "validation succeeds with no errors",
+        "testable": true,
+        "test_layer": "unit"
+      }
+    ],
+    "non_functional_requirements": {
+      "security": "Point-in-time recovery enabled. Server-side encryption enabled. No public access.",
+      "compliance": "Table name must follow naming convention: {project}-{environment}-metrics"
+    },
+    "definition_of_done": [
+      "Module creates table with correct key schema matching template.yaml",
+      "GSI-1 configured correctly",
+      "TTL enabled on ttl attribute",
+      "PITR and encryption enabled",
+      "All resources tagged correctly",
+      "terraform validate passes",
+      "checkov scan: 0 HIGH/CRITICAL findings"
+    ],
+    "constitutions_to_apply": ["terraform"],
+    "depends_on": ["DASH-011"],
+    "agent_instructions": "Read template.yaml before writing the module — the DynamoDB resource defined there is the source of truth. Mirror it exactly in Terraform. Read .claude/constitutions/terraform.md before writing any .tf files.",
+    "estimated_complexity": "S",
+    "ambiguity_flags": []
+  },
+  {
+    "story_id": "DASH-013",
+    "title": "Terraform Lambda and API Gateway module",
+    "type": "feature",
+    "priority": "P0",
+    "sprint": 2,
+    "affected_layers": ["infra"],
+    "description": "Terraform modules for all 6 Lambda functions and the API Gateway REST API, mirroring template.yaml. IAM roles with least-privilege DynamoDB permissions. Environment variables wired from SSM Parameter Store.",
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "the module is applied",
+        "when": "listing Lambda functions",
+        "then": "all 6 functions exist: get_current_metrics, ingest_metrics, get_sprint_list, get_sprint_detail, get_trends, get_story_detail",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-2",
+        "given": "the module is applied",
+        "when": "checking Lambda IAM roles",
+        "then": "each role grants only the DynamoDB actions it needs — no Action=[*] or Resource=[*]",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-3",
+        "given": "the module is applied",
+        "when": "listing API Gateway routes",
+        "then": "all 6 routes match the SAM template exactly: GET /metrics/current, POST /metrics/ingest, GET /metrics/sprints, GET /metrics/sprint/{num}, GET /metrics/trends, GET /metrics/story/{id}",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-4",
+        "given": "the module is applied",
+        "when": "checking Lambda environment variables",
+        "then": "DYNAMODB_TABLE and AWS_REGION are set from SSM Parameter Store references",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-5",
+        "given": "the module exists",
+        "when": "running checkov on infra/modules/lambda/ and infra/modules/api-gateway/",
+        "then": "0 HIGH or CRITICAL findings",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-6",
+        "given": "the module exists",
+        "when": "running terraform validate",
+        "then": "validation succeeds with no errors",
+        "testable": true,
+        "test_layer": "unit"
+      }
+    ],
+    "non_functional_requirements": {
+      "security": "Lambda execution roles use least privilege. No inline policies with wildcard actions. API Gateway has throttling configured.",
+      "performance": "Lambda memory set to 256MB for all functions. Timeout set to 30 seconds."
+    },
+    "definition_of_done": [
+      "All 6 Lambda functions defined in module",
+      "IAM roles with least-privilege permissions",
+      "API Gateway routes match template.yaml exactly",
+      "Environment variables wired from SSM",
+      "terraform validate passes",
+      "checkov scan: 0 HIGH/CRITICAL findings"
+    ],
+    "constitutions_to_apply": ["terraform"],
+    "depends_on": ["DASH-011", "DASH-012"],
+    "agent_instructions": "Read template.yaml before writing the module — it is the source of truth for Lambda handlers, routes, and IAM permissions. Mirror it exactly. Read .claude/constitutions/terraform.md before writing any .tf files. Do not use Action=[*] or Resource=[*] in any IAM policy.",
+    "estimated_complexity": "M",
+    "ambiguity_flags": []
+  },
+  {
+    "story_id": "DASH-014",
+    "title": "Terraform S3 and CloudFront module for React frontend",
+    "type": "feature",
+    "priority": "P0",
+    "sprint": 2,
+    "affected_layers": ["infra"],
+    "description": "Terraform module for React frontend hosting. Private S3 bucket with versioning and CloudFront distribution using Origin Access Control (OAC). HTTPS enforced, custom error page for SPA routing.",
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "the module is applied",
+        "when": "checking the S3 bucket",
+        "then": "public access is blocked on all 4 settings and the bucket is not publicly accessible",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-2",
+        "given": "the module is applied",
+        "when": "checking the CloudFront distribution",
+        "then": "it uses Origin Access Control (OAC) not Origin Access Identity (OAI)",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-3",
+        "given": "the module is applied",
+        "when": "accessing the CloudFront URL over HTTP",
+        "then": "it redirects to HTTPS with a 301 response",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-4",
+        "given": "the module is applied",
+        "when": "accessing a non-existent path on the CloudFront URL",
+        "then": "it returns index.html with a 200 status code for SPA routing",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-5",
+        "given": "the module is applied",
+        "when": "checking the S3 bucket",
+        "then": "versioning is enabled",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-6",
+        "given": "the module exists",
+        "when": "running checkov on infra/modules/s3-cloudfront/",
+        "then": "0 HIGH or CRITICAL findings",
+        "testable": true,
+        "test_layer": "unit"
+      }
+    ],
+    "non_functional_requirements": {
+      "security": "S3 bucket must block all public access. CloudFront must use OAC. TLS 1.2 minimum. WAF optional for prod.",
+      "performance": "CloudFront cache TTL: 1 year for hashed assets, no-cache for index.html."
+    },
+    "definition_of_done": [
+      "S3 bucket private with versioning enabled",
+      "CloudFront uses OAC not OAI",
+      "HTTPS enforced with HTTP redirect",
+      "Custom error page routes all 404s to index.html",
+      "terraform validate passes",
+      "checkov scan: 0 HIGH/CRITICAL findings"
+    ],
+    "constitutions_to_apply": ["terraform"],
+    "depends_on": ["DASH-011"],
+    "agent_instructions": "Read .claude/constitutions/terraform.md before writing any .tf files. Use OAC not OAI — OAI is deprecated. The S3 bucket must have zero public access. The CloudFront error page must return 200 not 404 for /index.html to support React Router.",
+    "estimated_complexity": "M",
+    "ambiguity_flags": []
+  },
+  {
+    "story_id": "DASH-015",
+    "title": "Terraform SSM Parameter Store module",
+    "type": "feature",
+    "priority": "P0",
+    "sprint": 2,
+    "affected_layers": ["infra"],
+    "description": "Terraform module that creates SSM Parameter Store entries for all environment variables the Lambda functions need. Values are placeholders — real values are set manually after apply. Secrets use SecureString type.",
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "the module is applied",
+        "when": "listing SSM parameters",
+        "then": "/{project}/{env}/DYNAMODB_TABLE exists as a String parameter",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-2",
+        "given": "the module is applied",
+        "when": "listing SSM parameters",
+        "then": "/{project}/{env}/ANTHROPIC_API_KEY exists as a SecureString parameter",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-3",
+        "given": "the module is applied",
+        "when": "listing SSM parameters",
+        "then": "/{project}/{env}/CORS_ORIGINS and /{project}/{env}/AWS_REGION exist as String parameters",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-4",
+        "given": "the module is applied",
+        "when": "checking parameter values",
+        "then": "all values are placeholders (CHANGE_ME or similar) — no real secrets are committed",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-5",
+        "given": "the module is applied",
+        "when": "checking the README",
+        "then": "it documents the command to set real values for each parameter",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-6",
+        "given": "the module exists",
+        "when": "running checkov on infra/modules/ssm/",
+        "then": "0 HIGH or CRITICAL findings",
+        "testable": true,
+        "test_layer": "unit"
+      }
+    ],
+    "non_functional_requirements": {
+      "security": "ANTHROPIC_API_KEY and any other secrets must be SecureString. Never commit real values. Placeholder values must be obviously fake."
+    },
+    "definition_of_done": [
+      "All required parameters created with correct types",
+      "SecureString used for secrets",
+      "Placeholder values only — no real secrets",
+      "README documents how to set real values",
+      "terraform validate passes",
+      "checkov scan: 0 HIGH/CRITICAL findings"
+    ],
+    "constitutions_to_apply": ["terraform"],
+    "depends_on": ["DASH-011"],
+    "agent_instructions": "Read .claude/constitutions/terraform.md before writing any .tf files. Never use real secret values — always use CHANGE_ME or similar placeholder. SecureString type must be used for ANTHROPIC_API_KEY and any other credentials. Write a README section documenting the aws ssm put-parameter commands to set real values.",
+    "estimated_complexity": "S",
+    "ambiguity_flags": []
+  },
+  {
+    "story_id": "DASH-016",
+    "title": "Terraform dev environment wiring",
+    "type": "feature",
+    "priority": "P0",
+    "sprint": 2,
+    "affected_layers": ["infra"],
+    "description": "Wire all Terraform modules together in infra/environments/dev/ with dev-appropriate settings. Remote state configured. terraform apply succeeds and creates all resources in AWS.",
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "infra/environments/dev/main.tf is complete",
+        "when": "running terraform plan",
+        "then": "it shows a clean plan with no errors and resources match expected count",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-2",
+        "given": "terraform apply has run",
+        "when": "curling the API Gateway URL at /metrics/current",
+        "then": "it returns a 200 or 404 (not 5xx) proving the endpoint is reachable",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-3",
+        "given": "terraform apply has run",
+        "when": "accessing the CloudFront URL",
+        "then": "it returns the React dashboard index.html",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-4",
+        "given": "infra/environments/dev/ is complete",
+        "when": "checking all resource names",
+        "then": "all follow the pattern yooti-dashboard-dev-{resource}",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-5",
+        "given": "terraform apply has run",
+        "when": "running terraform plan again",
+        "then": "it shows 0 changes — state matches reality",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-6",
+        "given": "infra/environments/dev/ is complete",
+        "when": "running checkov",
+        "then": "0 HIGH or CRITICAL findings",
+        "testable": true,
+        "test_layer": "unit"
+      }
+    ],
+    "non_functional_requirements": {
+      "security": "Dev environment uses same security controls as prod — no relaxed security for dev.",
+      "cost": "Lambda memory 128MB in dev. DynamoDB PAY_PER_REQUEST. No NAT Gateway unless required."
+    },
+    "definition_of_done": [
+      "All modules wired in environments/dev/main.tf",
+      "Remote state configured for dev",
+      "terraform plan succeeds",
+      "terraform apply creates all resources",
+      "API Gateway URL is reachable",
+      "CloudFront URL serves the dashboard",
+      "checkov scan: 0 HIGH/CRITICAL findings"
+    ],
+    "constitutions_to_apply": ["terraform"],
+    "depends_on": ["DASH-012", "DASH-013", "DASH-014", "DASH-015"],
+    "agent_instructions": "Read .claude/constitutions/terraform.md before writing any .tf files. This story wires all modules together — do not create new resources here, only call modules. Run the bootstrap script first to create the state backend before attempting terraform init.",
+    "estimated_complexity": "M",
+    "ambiguity_flags": []
+  },
+  {
+    "story_id": "DASH-017",
+    "title": "Frontend deploy script and GitHub Actions workflow",
+    "type": "feature",
+    "priority": "P1",
+    "sprint": 2,
+    "affected_layers": ["infra", "frontend"],
+    "description": "npm run build + aws s3 sync deploy script and GitHub Actions workflow that deploys the React frontend to S3 and invalidates the CloudFront cache on every merge to main.",
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "scripts/deploy-frontend.sh is run",
+        "when": "it completes",
+        "then": "the built frontend files are synced to the S3 bucket and a CloudFront invalidation is created",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-2",
+        "given": "a PR is merged to main",
+        "when": "the GitHub Actions workflow runs",
+        "then": "it builds the frontend, syncs to S3, and invalidates CloudFront automatically",
+        "testable": true,
+        "test_layer": "integration"
+      },
+      {
+        "id": "AC-3",
+        "given": "the deploy script runs",
+        "when": "syncing to S3",
+        "then": "it sets correct cache headers: max-age=31536000 for hashed assets, no-cache for index.html",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-4",
+        "given": "the GitHub Actions workflow exists",
+        "when": "reviewing the workflow file",
+        "then": "AWS credentials come from GitHub secrets, not hardcoded values",
+        "testable": true,
+        "test_layer": "unit"
+      },
+      {
+        "id": "AC-5",
+        "given": "the deploy completes",
+        "when": "accessing the CloudFront URL",
+        "then": "the latest version of the dashboard is served",
+        "testable": true,
+        "test_layer": "integration"
+      }
+    ],
+    "non_functional_requirements": {
+      "security": "AWS credentials must come from GitHub OIDC or secrets — never hardcoded. S3 sync uses --delete flag to remove stale files.",
+      "performance": "CloudFront invalidation targets /* to clear all cached files after deploy."
+    },
+    "definition_of_done": [
+      "scripts/deploy-frontend.sh builds and syncs to S3",
+      "CloudFront invalidation runs after sync",
+      ".github/workflows/deploy-frontend.yml triggers on merge to main",
+      "Cache headers set correctly for hashed assets vs index.html",
+      "AWS credentials from GitHub secrets only",
+      "CloudFront URL serves latest dashboard after deploy"
+    ],
+    "constitutions_to_apply": ["terraform", "security"],
+    "depends_on": ["DASH-014", "DASH-016"],
+    "agent_instructions": "Read .claude/constitutions/terraform.md and .claude/constitutions/security.md before starting. The S3 bucket name and CloudFront distribution ID must be read from Terraform outputs — not hardcoded in the script. Use --delete flag on aws s3 sync to remove files that no longer exist in the build output.",
+    "estimated_complexity": "S",
+    "ambiguity_flags": []
+  }
+]

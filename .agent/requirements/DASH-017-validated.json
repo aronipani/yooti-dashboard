@@ -1,0 +1,77 @@
+{
+  "story_id": "DASH-017",
+  "title": "Frontend deploy script and GitHub Actions workflow",
+  "type": "feature",
+  "priority": "P1",
+  "sprint": 2,
+  "affected_layers": [
+    "infra",
+    "frontend"
+  ],
+  "description": "npm run build + aws s3 sync deploy script and GitHub Actions workflow that deploys the React frontend to S3 and invalidates the CloudFront cache on every merge to main.",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "scripts/deploy-frontend.sh is run",
+      "when": "it completes",
+      "then": "the built frontend files are synced to the S3 bucket and a CloudFront invalidation is created",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-2",
+      "given": "a PR is merged to main",
+      "when": "the GitHub Actions workflow runs",
+      "then": "it builds the frontend, syncs to S3, and invalidates CloudFront automatically",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-3",
+      "given": "the deploy script runs",
+      "when": "syncing to S3",
+      "then": "it sets correct cache headers: max-age=31536000 for hashed assets, no-cache for index.html",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-4",
+      "given": "the GitHub Actions workflow exists",
+      "when": "reviewing the workflow file",
+      "then": "AWS credentials come from GitHub secrets, not hardcoded values",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-5",
+      "given": "the deploy completes",
+      "when": "accessing the CloudFront URL",
+      "then": "the latest version of the dashboard is served",
+      "testable": true,
+      "test_layer": "integration"
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "AWS credentials must come from GitHub OIDC or secrets — never hardcoded. S3 sync uses --delete flag to remove stale files.",
+    "performance": "CloudFront invalidation targets /* to clear all cached files after deploy."
+  },
+  "definition_of_done": [
+    "scripts/deploy-frontend.sh builds and syncs to S3",
+    "CloudFront invalidation runs after sync",
+    ".github/workflows/deploy-frontend.yml triggers on merge to main",
+    "Cache headers set correctly for hashed assets vs index.html",
+    "AWS credentials from GitHub secrets only",
+    "CloudFront URL serves latest dashboard after deploy"
+  ],
+  "constitutions_to_apply": [
+    "terraform",
+    "security"
+  ],
+  "depends_on": [
+    "DASH-014",
+    "DASH-016"
+  ],
+  "agent_instructions": "Read .claude/constitutions/terraform.md and .claude/constitutions/security.md before starting. The S3 bucket name and CloudFront distribution ID must be read from Terraform outputs — not hardcoded in the script. Use --delete flag on aws s3 sync to remove files that no longer exist in the build output.",
+  "estimated_complexity": "S",
+  "ambiguity_flags": []
+}

@@ -1,0 +1,86 @@
+{
+  "story_id": "DASH-016",
+  "title": "Terraform dev environment wiring",
+  "type": "feature",
+  "priority": "P0",
+  "sprint": 2,
+  "affected_layers": [
+    "infra"
+  ],
+  "description": "Wire all Terraform modules together in infra/environments/dev/ with dev-appropriate settings. Remote state configured. terraform apply succeeds and creates all resources in AWS.",
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "infra/environments/dev/main.tf is complete",
+      "when": "running terraform plan",
+      "then": "it shows a clean plan with no errors and resources match expected count",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-2",
+      "given": "terraform apply has run",
+      "when": "curling the API Gateway URL at /metrics/current",
+      "then": "it returns a 200 or 404 (not 5xx) proving the endpoint is reachable",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-3",
+      "given": "terraform apply has run",
+      "when": "accessing the CloudFront URL",
+      "then": "it returns the React dashboard index.html",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-4",
+      "given": "infra/environments/dev/ is complete",
+      "when": "checking all resource names",
+      "then": "all follow the pattern yooti-dashboard-dev-{resource}",
+      "testable": true,
+      "test_layer": "unit"
+    },
+    {
+      "id": "AC-5",
+      "given": "terraform apply has run",
+      "when": "running terraform plan again",
+      "then": "it shows 0 changes — state matches reality",
+      "testable": true,
+      "test_layer": "integration"
+    },
+    {
+      "id": "AC-6",
+      "given": "infra/environments/dev/ is complete",
+      "when": "running checkov",
+      "then": "0 HIGH or CRITICAL findings",
+      "testable": true,
+      "test_layer": "unit"
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "Dev environment uses same security controls as prod — no relaxed security for dev.",
+    "cost": "Lambda memory 128MB in dev. DynamoDB PAY_PER_REQUEST. No NAT Gateway unless required."
+  },
+  "definition_of_done": [
+    "All modules wired in environments/dev/main.tf",
+    "Remote state configured for dev",
+    "terraform plan succeeds",
+    "terraform apply creates all resources",
+    "API Gateway URL is reachable",
+    "CloudFront URL serves the dashboard",
+    "checkov scan: 0 HIGH/CRITICAL findings"
+  ],
+  "constitutions_to_apply": [
+    "terraform"
+  ],
+  "depends_on": [
+    "DASH-012",
+    "DASH-013",
+    "DASH-014",
+    "DASH-015"
+  ],
+  "agent_instructions": "Read .claude/constitutions/terraform.md before writing any .tf files. This story wires all modules together — do not create new resources here, only call modules. Run the bootstrap script first to create the state backend before attempting terraform init.",
+  "estimated_complexity": "M",
+  "ambiguity_flags": []
+}
