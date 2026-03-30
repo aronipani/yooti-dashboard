@@ -1,15 +1,18 @@
 /**
  * DashboardLayout — top-level layout with tab navigation and sprint selector.
- * Manages active tab state and renders the corresponding tab page.
+ * Manages active tab state, project ID, and selected sprint.
  */
 import { useState } from 'react'
 import { clsx } from 'clsx'
+import { SprintSelector } from '../components/SprintSelector'
 import { ProductivityTab } from './ProductivityTab'
 import { QualityTab } from './QualityTab'
 import { AgentEfficiencyTab } from './AgentEfficiencyTab'
 import { ValueTab } from './ValueTab'
 import { DoraTab } from './DoraTab'
 import { StoryDrilldownTab } from './StoryDrilldownTab'
+
+const PROJECT_ID = import.meta.env.VITE_PROJECT_ID ?? 'yooti-dashboard'
 
 const TABS = [
   { id: 'productivity', label: 'Productivity' },
@@ -22,19 +25,26 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
-const TAB_COMPONENTS: Record<TabId, React.ComponentType> = {
-  productivity: ProductivityTab,
-  quality: QualityTab,
-  'agent-efficiency': AgentEfficiencyTab,
-  value: ValueTab,
-  dora: DoraTab,
-  'story-drilldown': StoryDrilldownTab,
-}
-
 export function DashboardLayout() {
   const [activeTab, setActiveTab] = useState<TabId>('productivity')
+  const [selectedSprint, setSelectedSprint] = useState<number | null>(null)
 
-  const ActiveComponent = TAB_COMPONENTS[activeTab]
+  function renderActiveTab() {
+    switch (activeTab) {
+      case 'productivity':
+        return <ProductivityTab projectId={PROJECT_ID} />
+      case 'quality':
+        return <QualityTab projectId={PROJECT_ID} />
+      case 'agent-efficiency':
+        return <AgentEfficiencyTab projectId={PROJECT_ID} />
+      case 'value':
+        return <ValueTab projectId={PROJECT_ID} />
+      case 'dora':
+        return <DoraTab projectId={PROJECT_ID} />
+      case 'story-drilldown':
+        return <StoryDrilldownTab projectId={PROJECT_ID} selectedSprint={selectedSprint} />
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,19 +53,11 @@ export function DashboardLayout() {
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <h1 className="text-xl font-bold text-gray-900">Yooti Dashboard</h1>
-            {/* Sprint selector placeholder — will be connected to hooks later */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="sprint-selector" className="text-sm font-medium text-gray-600">
-                Sprint:
-              </label>
-              <select
-                id="sprint-selector"
-                className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                aria-label="Select sprint"
-              >
-                <option>Current Sprint</option>
-              </select>
-            </div>
+            <SprintSelector
+              projectId={PROJECT_ID}
+              value={selectedSprint}
+              onChange={setSelectedSprint}
+            />
           </div>
         </div>
       </header>
@@ -94,7 +96,7 @@ export function DashboardLayout() {
           id={`tabpanel-${activeTab}`}
           aria-labelledby={`tab-${activeTab}`}
         >
-          <ActiveComponent />
+          {renderActiveTab()}
         </div>
       </main>
     </div>

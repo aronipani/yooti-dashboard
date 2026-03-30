@@ -1,13 +1,29 @@
 /**
  * Unit tests for the DashboardLayout component.
- * Tests tab navigation, active tab rendering, and accessibility.
+ * Tests tab navigation, sprint selector integration, and accessibility.
  */
 import React from 'react'
-import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders, expectNoA11yViolations } from '../helpers/render'
 import { DashboardLayout } from '../../src/pages/DashboardLayout'
+import { apiClient } from '../../src/lib/api-client'
+
+vi.mock('../../src/lib/api-client', () => ({
+  apiClient: { get: vi.fn(), post: vi.fn() },
+}))
+
+const mockedGet = vi.mocked(apiClient.get)
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  // Default: sprints list returns empty, current metrics pending
+  mockedGet.mockImplementation((url: string) => {
+    if (url === '/metrics/sprints') return Promise.resolve({ data: [] })
+    return new Promise(() => {}) // pending forever for tab content
+  })
+})
 
 describe('DashboardLayout', () => {
   it('renders the dashboard title', () => {
@@ -82,14 +98,30 @@ describe('DashboardLayout', () => {
     expect(screen.getByRole('tablist')).toBeInTheDocument()
   })
 
-  it('renders sprint selector in header', () => {
+  it('renders SprintSelector in header', async () => {
+    mockedGet.mockImplementation((url: string) => {
+      if (url === '/metrics/sprints') return Promise.resolve({ data: [] })
+      return new Promise(() => {})
+    })
+
     renderWithProviders(<DashboardLayout />)
 
-    expect(screen.getByLabelText('Select sprint')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByLabelText('Select sprint')).toBeInTheDocument()
+    })
   })
 
   it('has no accessibility violations', async () => {
+    mockedGet.mockImplementation((url: string) => {
+      if (url === '/metrics/sprints') return Promise.resolve({ data: [] })
+      return new Promise(() => {})
+    })
+
     const { container } = renderWithProviders(<DashboardLayout />)
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Select sprint')).toBeInTheDocument()
+    })
 
     await expectNoA11yViolations(container)
   })

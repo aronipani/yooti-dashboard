@@ -108,7 +108,7 @@ describe('useSprintList', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(mockedGet).toHaveBeenCalledWith('/sprints', {
+    expect(mockedGet).toHaveBeenCalledWith('/metrics/sprints', {
       params: { project_id: PROJECT_ID },
     })
     expect(result.current.data).toHaveLength(2)
@@ -139,7 +139,7 @@ describe('useSprintDetail', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(mockedGet).toHaveBeenCalledWith('/sprints/3', {
+    expect(mockedGet).toHaveBeenCalledWith('/metrics/sprint/3', {
       params: { project_id: PROJECT_ID },
     })
     expect(result.current.data?.sprint_num).toBe(3)
@@ -182,7 +182,7 @@ describe('useTrends', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(mockedGet).toHaveBeenCalledWith('/trends', {
+    expect(mockedGet).toHaveBeenCalledWith('/metrics/trends', {
       params: { project_id: PROJECT_ID, metric: 'sprint_completion_pct' },
     })
     expect(result.current.data).toHaveLength(1)
@@ -199,7 +199,7 @@ describe('useTrends', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(mockedGet).toHaveBeenCalledWith('/trends', {
+    expect(mockedGet).toHaveBeenCalledWith('/metrics/trends', {
       params: { project_id: PROJECT_ID },
     })
   })
@@ -235,8 +235,8 @@ describe('useStoryDetail', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(mockedGet).toHaveBeenCalledWith('/sprints/2/stories/DASH-001', {
-      params: { project_id: PROJECT_ID },
+    expect(mockedGet).toHaveBeenCalledWith('/metrics/story/DASH-001', {
+      params: { project_id: PROJECT_ID, sprint: 2 },
     })
     expect(result.current.data?.story_id).toBe('DASH-001')
   })

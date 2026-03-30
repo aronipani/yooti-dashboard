@@ -10,7 +10,7 @@ export function useSprintList(projectId: string) {
     queryKey: ['sprintList', projectId],
     queryFn: async (): Promise<SprintSummary[]> => {
       const { data } = await apiClient.get<SprintSummary[]>(
-        '/sprints',
+        '/metrics/sprints',
         { params: { project_id: projectId } }
       )
       return data

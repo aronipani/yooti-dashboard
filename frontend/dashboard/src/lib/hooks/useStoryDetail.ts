@@ -14,8 +14,8 @@ export function useStoryDetail(
     queryKey: ['storyDetail', projectId, sprintNum, storyId],
     queryFn: async (): Promise<StoryMetrics> => {
       const { data } = await apiClient.get<StoryMetrics>(
-        `/sprints/${sprintNum}/stories/${storyId}`,
-        { params: { project_id: projectId } }
+        `/metrics/story/${storyId}`,
+        { params: { project_id: projectId, sprint: sprintNum } }
       )
       return data
     },
