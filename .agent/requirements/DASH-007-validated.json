@@ -1,0 +1,57 @@
+{
+  "story_id": "DASH-007",
+  "title": "As yooti sprint:report I want aggregate-metrics.py to read .agent/ files and POST to ingest so that the dashboard updates automatically after every sprint report",
+  "type": "feature",
+  "priority": "P0",
+  "estimated_complexity": "M",
+  "sprint": 1,
+  "affected_layers": [
+    "api"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "a Yooti project with gate files and evidence packages for sprint 10",
+      "when": "python pipeline/scripts/aggregate-metrics.py is run",
+      "then": "valid ingest payload built and POST /metrics/ingest returns 201"
+    },
+    {
+      "id": "AC-2",
+      "given": "a gate file is missing for one story",
+      "when": "aggregate-metrics.py runs",
+      "then": "story included with status INCOMPLETE — no error or skip"
+    },
+    {
+      "id": "AC-3",
+      "given": "aggregate-metrics.py run twice for same sprint",
+      "when": "second run completes",
+      "then": "ingest returns 200 — idempotent re-ingest succeeds"
+    },
+    {
+      "id": "AC-4",
+      "given": "ingest endpoint is unavailable",
+      "when": "aggregate-metrics.py runs",
+      "then": "clear error message printed and exit code 1 — no silent failure"
+    },
+    {
+      "id": "AC-5",
+      "given": "yooti sprint:report is run",
+      "when": "report completes",
+      "then": "aggregate-metrics.py called automatically and dashboard update message printed"
+    }
+  ],
+  "definition_of_done": [
+    "aggregate-metrics.py reads all gate files, evidence, escalations, corrections, logs",
+    "Computes all KPI fields in ingest payload schema",
+    "Called automatically by yooti sprint:report",
+    "YOOTI_DASHBOARD_API_URL from os.environ — not hardcoded",
+    "No real API call in unit tests — requests.post mocked",
+    "Coverage on new code >= 90%"
+  ],
+  "constitutions": [
+    "python",
+    "security",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — File readers for each .agent/ folder type | T002 — Metric computation | T003 — HTTP ingest + sprint:report integration | T004 — Unit tests all AC"
+}

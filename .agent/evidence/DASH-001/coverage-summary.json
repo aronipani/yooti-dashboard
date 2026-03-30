@@ -1,0 +1,12 @@
+{
+  "story_id": "DASH-001",
+  "generated_at": "2026-03-29T16:50:00Z",
+  "overall": 79.5,
+  "new_code": 89.2,
+  "files": [
+    { "file": "src/repository/__init__.py", "lines": 100.0, "branches": 0 },
+    { "file": "src/repository/metrics_repository.py", "lines": 81.0, "branches": 0 },
+    { "file": "src/repository/errors.py", "lines": 100.0, "branches": 0 },
+    { "file": "src/repository/keys.py", "lines": 100.0, "branches": 0 }
+  ]
+}

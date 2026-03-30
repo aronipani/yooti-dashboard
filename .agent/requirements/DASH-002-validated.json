@@ -1,0 +1,60 @@
+{
+  "story_id": "DASH-002",
+  "title": "As aggregate-metrics.py I want POST /metrics/ingest so that pipeline data is written to DynamoDB and the current snapshot is updated atomically",
+  "type": "aws-lambda",
+  "priority": "P0",
+  "estimated_complexity": "M",
+  "sprint": 1,
+  "affected_layers": [
+    "api",
+    "database"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "a valid ingest payload with project_id, sprint_num, and stories array",
+      "when": "POST /metrics/ingest is called",
+      "then": "all entities written to DynamoDB and 201 returned with sprint_num"
+    },
+    {
+      "id": "AC-2",
+      "given": "the same sprint payload is submitted a second time",
+      "when": "POST /metrics/ingest is called again",
+      "then": "all items overwritten and 200 returned — not 409"
+    },
+    {
+      "id": "AC-3",
+      "given": "payload is missing project_id",
+      "when": "POST /metrics/ingest is called",
+      "then": "400 returned with error INVALID_PROJECT_ID — no stack trace in response"
+    },
+    {
+      "id": "AC-4",
+      "given": "DynamoDB is unavailable",
+      "when": "POST /metrics/ingest is called",
+      "then": "500 returned with error INTERNAL_ERROR — no internal detail exposed"
+    },
+    {
+      "id": "AC-5",
+      "given": "a valid ingest payload is submitted",
+      "when": "ingest completes",
+      "then": "CURRENT#SNAPSHOT updated with new KPIs and insight alerts computed"
+    }
+  ],
+  "definition_of_done": [
+    "All AC passing with @mock_aws — no real DynamoDB calls",
+    "Handler returns correct statusCode for every AC",
+    "CURRENT#SNAPSHOT updated on every successful ingest",
+    "Insight alert types: BOTTLENECK, HUMAN_VS_AGENT, CONSTITUTION_GAP, QUALITY_DROP, REGRESSION_SPIKE, ESCALATION_SPIKE, DORA_GAP",
+    "Idempotency verified — same payload twice returns 200 not 409",
+    "Coverage on new code >= 90%",
+    "Security scan: 0 HIGH/CRITICAL"
+  ],
+  "constitutions": [
+    "python",
+    "aws",
+    "security",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — Input validator | T002 — ingest_metrics Lambda handler | T003 — Insight alert engine | T004 — Unit tests all AC"
+}

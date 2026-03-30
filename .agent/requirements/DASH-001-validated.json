@@ -1,0 +1,60 @@
+{
+  "story_id": "DASH-001",
+  "title": "As a metrics consumer I want a DynamoDB repository layer so that all dashboard data is stored and retrieved without Scan operations",
+  "type": "aws-lambda",
+  "priority": "P0",
+  "estimated_complexity": "M",
+  "sprint": 1,
+  "affected_layers": [
+    "database"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "a valid sprint payload is written to DynamoDB",
+      "when": "the same payload is written again with identical sprint_num",
+      "then": "the write succeeds idempotently — no error, no duplicate"
+    },
+    {
+      "id": "AC-2",
+      "given": "sprint data exists for sprint 10",
+      "when": "get_sprint_summary(project_id, sprint_num=10) is called",
+      "then": "all KPI fields are returned using a single Query — no Scan"
+    },
+    {
+      "id": "AC-3",
+      "given": "five story records exist for sprint 10",
+      "when": "get_sprint_stories(project_id, sprint_num=10) is called",
+      "then": "all five records returned using SK begins_with — one Query call"
+    },
+    {
+      "id": "AC-4",
+      "given": "a CURRENT#SNAPSHOT item exists",
+      "when": "get_current_snapshot(project_id) is called",
+      "then": "item returned using GetItem — not Query, not Scan"
+    },
+    {
+      "id": "AC-5",
+      "given": "DynamoDB is unavailable",
+      "when": "any repository method is called",
+      "then": "ClientError caught and re-raised as RepositoryError — no internal detail exposed"
+    }
+  ],
+  "definition_of_done": [
+    "All AC have passing unit tests using @mock_aws — no real DynamoDB calls",
+    "Single table design confirmed — PK/SK patterns match architecture document",
+    "No Scan operations anywhere in repository layer",
+    "Conditional writes used on all put_item calls",
+    "TABLE_NAME from os.environ — never hardcoded",
+    "Coverage on new code >= 90%",
+    "Security scan: 0 HIGH/CRITICAL"
+  ],
+  "constitutions": [
+    "python",
+    "aws",
+    "security",
+    "testing"
+  ],
+  "architect_note": "PK=PROJECT#<id>, SK patterns defined in ARCH-DASHBOARD.md Section 3. Enforce single table. No Scan anywhere.",
+  "decomposition_hint": "T001 — DynamoDB table patterns + repository class | T002 — All read methods with access pattern tests | T003 — Write methods with idempotency tests"
+}

@@ -1,0 +1,705 @@
+[
+  {
+    "story_id": "DASH-001",
+    "title": "As a metrics consumer I want a DynamoDB repository layer so that all dashboard data is stored and retrieved without Scan operations",
+    "type": "aws-lambda",
+    "priority": "P0",
+    "estimated_complexity": "M",
+    "sprint": 1,
+    "affected_layers": [
+      "database"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "a valid sprint payload is written to DynamoDB",
+        "when": "the same payload is written again with identical sprint_num",
+        "then": "the write succeeds idempotently \u2014 no error, no duplicate"
+      },
+      {
+        "id": "AC-2",
+        "given": "sprint data exists for sprint 10",
+        "when": "get_sprint_summary(project_id, sprint_num=10) is called",
+        "then": "all KPI fields are returned using a single Query \u2014 no Scan"
+      },
+      {
+        "id": "AC-3",
+        "given": "five story records exist for sprint 10",
+        "when": "get_sprint_stories(project_id, sprint_num=10) is called",
+        "then": "all five records returned using SK begins_with \u2014 one Query call"
+      },
+      {
+        "id": "AC-4",
+        "given": "a CURRENT#SNAPSHOT item exists",
+        "when": "get_current_snapshot(project_id) is called",
+        "then": "item returned using GetItem \u2014 not Query, not Scan"
+      },
+      {
+        "id": "AC-5",
+        "given": "DynamoDB is unavailable",
+        "when": "any repository method is called",
+        "then": "ClientError caught and re-raised as RepositoryError \u2014 no internal detail exposed"
+      }
+    ],
+    "definition_of_done": [
+      "All AC have passing unit tests using @mock_aws \u2014 no real DynamoDB calls",
+      "Single table design confirmed \u2014 PK/SK patterns match architecture document",
+      "No Scan operations anywhere in repository layer",
+      "Conditional writes used on all put_item calls",
+      "TABLE_NAME from os.environ \u2014 never hardcoded",
+      "Coverage on new code >= 90%",
+      "Security scan: 0 HIGH/CRITICAL"
+    ],
+    "constitutions": [
+      "python",
+      "aws",
+      "security",
+      "testing"
+    ],
+    "architect_note": "PK=PROJECT#<id>, SK patterns defined in ARCH-DASHBOARD.md Section 3. Enforce single table. No Scan anywhere.",
+    "decomposition_hint": "T001 \u2014 DynamoDB table patterns + repository class | T002 \u2014 All read methods with access pattern tests | T003 \u2014 Write methods with idempotency tests"
+  },
+  {
+    "story_id": "DASH-002",
+    "title": "As aggregate-metrics.py I want POST /metrics/ingest so that pipeline data is written to DynamoDB and the current snapshot is updated atomically",
+    "type": "aws-lambda",
+    "priority": "P0",
+    "estimated_complexity": "M",
+    "sprint": 1,
+    "affected_layers": [
+      "api",
+      "database"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "a valid ingest payload with project_id, sprint_num, and stories array",
+        "when": "POST /metrics/ingest is called",
+        "then": "all entities written to DynamoDB and 201 returned with sprint_num"
+      },
+      {
+        "id": "AC-2",
+        "given": "the same sprint payload is submitted a second time",
+        "when": "POST /metrics/ingest is called again",
+        "then": "all items overwritten and 200 returned \u2014 not 409"
+      },
+      {
+        "id": "AC-3",
+        "given": "payload is missing project_id",
+        "when": "POST /metrics/ingest is called",
+        "then": "400 returned with error INVALID_PROJECT_ID \u2014 no stack trace in response"
+      },
+      {
+        "id": "AC-4",
+        "given": "DynamoDB is unavailable",
+        "when": "POST /metrics/ingest is called",
+        "then": "500 returned with error INTERNAL_ERROR \u2014 no internal detail exposed"
+      },
+      {
+        "id": "AC-5",
+        "given": "a valid ingest payload is submitted",
+        "when": "ingest completes",
+        "then": "CURRENT#SNAPSHOT updated with new KPIs and insight alerts computed"
+      }
+    ],
+    "definition_of_done": [
+      "All AC passing with @mock_aws \u2014 no real DynamoDB calls",
+      "Handler returns correct statusCode for every AC",
+      "CURRENT#SNAPSHOT updated on every successful ingest",
+      "Insight alert types: BOTTLENECK, HUMAN_VS_AGENT, CONSTITUTION_GAP, QUALITY_DROP, REGRESSION_SPIKE, ESCALATION_SPIKE, DORA_GAP",
+      "Idempotency verified \u2014 same payload twice returns 200 not 409",
+      "Coverage on new code >= 90%",
+      "Security scan: 0 HIGH/CRITICAL"
+    ],
+    "constitutions": [
+      "python",
+      "aws",
+      "security",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 Input validator | T002 \u2014 ingest_metrics Lambda handler | T003 \u2014 Insight alert engine | T004 \u2014 Unit tests all AC"
+  },
+  {
+    "story_id": "DASH-003",
+    "title": "As the dashboard I want GET /metrics/current so that the page loads with the latest sprint KPIs and alerts in a single API call",
+    "type": "aws-lambda",
+    "priority": "P0",
+    "estimated_complexity": "S",
+    "sprint": 1,
+    "affected_layers": [
+      "api",
+      "database"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "a current snapshot exists for project_id",
+        "when": "GET /metrics/current?project_id=yooti-ri is called",
+        "then": "200 returned with kpis, insights, sprint_num, last_ingested_at"
+      },
+      {
+        "id": "AC-2",
+        "given": "no snapshot exists for project_id",
+        "when": "GET /metrics/current is called",
+        "then": "404 returned with error SPRINT_NOT_FOUND"
+      },
+      {
+        "id": "AC-3",
+        "given": "project_id is missing",
+        "when": "GET /metrics/current is called",
+        "then": "400 returned with error INVALID_PROJECT_ID"
+      },
+      {
+        "id": "AC-4",
+        "given": "snapshot exists",
+        "when": "GET /metrics/current is called",
+        "then": "data retrieved using single GetItem \u2014 no Query, no Scan"
+      }
+    ],
+    "definition_of_done": [
+      "All AC passing with @mock_aws",
+      "Single GetItem confirmed \u2014 not Query or Scan",
+      "CORS headers in every response",
+      "Coverage on new code >= 90%",
+      "Security scan: 0 HIGH/CRITICAL"
+    ],
+    "constitutions": [
+      "python",
+      "aws",
+      "security",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 get_current_metrics Lambda | T002 \u2014 Unit tests all AC"
+  },
+  {
+    "story_id": "DASH-004",
+    "title": "As the sprint selector I want GET /metrics/sprints and GET /metrics/sprint/{id} so that users can browse all historical sprint data",
+    "type": "aws-lambda",
+    "priority": "P1",
+    "estimated_complexity": "M",
+    "sprint": 1,
+    "affected_layers": [
+      "api",
+      "database"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "five sprints exist for a project",
+        "when": "GET /metrics/sprints?project_id=yooti-ri is called",
+        "then": "array of five summaries returned in descending sprint_num order"
+      },
+      {
+        "id": "AC-2",
+        "given": "sprint 10 has summary and eight stories",
+        "when": "GET /metrics/sprint/10?project_id=yooti-ri is called",
+        "then": "response includes summary KPIs, phase_avg_hrs, gate_rejection_rates, escalation_breakdown, stories array"
+      },
+      {
+        "id": "AC-3",
+        "given": "sprint 99 does not exist",
+        "when": "GET /metrics/sprint/99 is called",
+        "then": "404 with error SPRINT_NOT_FOUND"
+      },
+      {
+        "id": "AC-4",
+        "given": "sprint_num is not a positive integer",
+        "when": "GET /metrics/sprint/abc is called",
+        "then": "400 with error INVALID_SPRINT_NUM"
+      }
+    ],
+    "definition_of_done": [
+      "All AC passing with @mock_aws",
+      "No Scan \u2014 Query with SK begins_with only",
+      "Results sorted descending by sprint_num",
+      "Coverage on new code >= 90%",
+      "Security scan: 0 HIGH/CRITICAL"
+    ],
+    "constitutions": [
+      "python",
+      "aws",
+      "security",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 get_sprint_list Lambda | T002 \u2014 get_sprint_detail Lambda | T003 \u2014 Unit tests all AC"
+  },
+  {
+    "story_id": "DASH-005",
+    "title": "As the trends and story tabs I want GET /metrics/trends and GET /metrics/story/{id} so that users see metric history and per-story detail",
+    "type": "aws-lambda",
+    "priority": "P1",
+    "estimated_complexity": "M",
+    "sprint": 1,
+    "affected_layers": [
+      "api",
+      "database"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "five trend points exist for cycle_time_avg",
+        "when": "GET /metrics/trends?project_id=yooti-ri&metric=cycle_time_avg is called",
+        "then": "array of five objects with sprint_num, value, delta_from_prev, direction returned"
+      },
+      {
+        "id": "AC-2",
+        "given": "no metric filter provided",
+        "when": "GET /metrics/trends?project_id=yooti-ri is called",
+        "then": "all metric series returned grouped by metric_name"
+      },
+      {
+        "id": "AC-3",
+        "given": "story PROJ-123 exists in sprint 10",
+        "when": "GET /metrics/story/PROJ-123?project_id=yooti-ri&sprint=10 is called",
+        "then": "response includes evidence fields, phase_durations, gate_timestamps with reviewers, escalation_log"
+      },
+      {
+        "id": "AC-4",
+        "given": "story PROJ-999 does not exist",
+        "when": "GET /metrics/story/PROJ-999 is called",
+        "then": "404 with error STORY_NOT_FOUND"
+      }
+    ],
+    "definition_of_done": [
+      "All AC passing with @mock_aws",
+      "Trend data sorted ascending by sprint_num for charting",
+      "Story detail includes gate_timestamps, phase_durations, escalation_log",
+      "Coverage on new code >= 90%",
+      "Security scan: 0 HIGH/CRITICAL"
+    ],
+    "constitutions": [
+      "python",
+      "aws",
+      "security",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 get_trends Lambda | T002 \u2014 get_story_detail Lambda | T003 \u2014 Unit tests all AC"
+  },
+  {
+    "story_id": "DASH-006",
+    "title": "As the system I want a SAM template wiring all Lambdas to API Gateway so that the full backend deploys with one command locally and to AWS",
+    "type": "feature",
+    "priority": "P0",
+    "estimated_complexity": "S",
+    "sprint": 1,
+    "affected_layers": [
+      "infrastructure"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "the SAM template exists",
+        "when": "sam validate is run",
+        "then": "template is valid with zero errors"
+      },
+      {
+        "id": "AC-2",
+        "given": "LocalStack is running",
+        "when": "sam local start-api --env-vars env.local.json is run",
+        "then": "all six endpoints respond correctly to curl test requests"
+      },
+      {
+        "id": "AC-3",
+        "given": "Vite dev server is running with proxy config",
+        "when": "fetch to /api/metrics/current is made from browser",
+        "then": "request proxies to LocalStack and returns data \u2014 no CORS error"
+      }
+    ],
+    "definition_of_done": [
+      "sam validate passes with zero errors",
+      "All six endpoints wired in template.yaml",
+      "DynamoDB table resource with single table schema",
+      "TABLE_NAME passed as env var to all Lambdas",
+      "CORS configured for Vite dev origin",
+      "env.local.json generated for LocalStack",
+      "samconfig.toml generated for staging and production"
+    ],
+    "constitutions": [
+      "python",
+      "aws",
+      "security"
+    ],
+    "decomposition_hint": "T001 \u2014 template.yaml all Lambdas + API Gateway + DynamoDB | T002 \u2014 samconfig.toml + env.local.json + Vite proxy config"
+  },
+  {
+    "story_id": "DASH-007",
+    "title": "As yooti sprint:report I want aggregate-metrics.py to read .agent/ files and POST to ingest so that the dashboard updates automatically after every sprint report",
+    "type": "feature",
+    "priority": "P0",
+    "estimated_complexity": "M",
+    "sprint": 1,
+    "affected_layers": [
+      "api"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "a Yooti project with gate files and evidence packages for sprint 10",
+        "when": "python pipeline/scripts/aggregate-metrics.py is run",
+        "then": "valid ingest payload built and POST /metrics/ingest returns 201"
+      },
+      {
+        "id": "AC-2",
+        "given": "a gate file is missing for one story",
+        "when": "aggregate-metrics.py runs",
+        "then": "story included with status INCOMPLETE \u2014 no error or skip"
+      },
+      {
+        "id": "AC-3",
+        "given": "aggregate-metrics.py run twice for same sprint",
+        "when": "second run completes",
+        "then": "ingest returns 200 \u2014 idempotent re-ingest succeeds"
+      },
+      {
+        "id": "AC-4",
+        "given": "ingest endpoint is unavailable",
+        "when": "aggregate-metrics.py runs",
+        "then": "clear error message printed and exit code 1 \u2014 no silent failure"
+      },
+      {
+        "id": "AC-5",
+        "given": "yooti sprint:report is run",
+        "when": "report completes",
+        "then": "aggregate-metrics.py called automatically and dashboard update message printed"
+      }
+    ],
+    "definition_of_done": [
+      "aggregate-metrics.py reads all gate files, evidence, escalations, corrections, logs",
+      "Computes all KPI fields in ingest payload schema",
+      "Called automatically by yooti sprint:report",
+      "YOOTI_DASHBOARD_API_URL from os.environ \u2014 not hardcoded",
+      "No real API call in unit tests \u2014 requests.post mocked",
+      "Coverage on new code >= 90%"
+    ],
+    "constitutions": [
+      "python",
+      "security",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 File readers for each .agent/ folder type | T002 \u2014 Metric computation | T003 \u2014 HTTP ingest + sprint:report integration | T004 \u2014 Unit tests all AC"
+  },
+  {
+    "story_id": "DASH-008",
+    "title": "As a dashboard user I want React fetch hooks for all API endpoints so that every tab loads real data with loading and error states",
+    "type": "feature",
+    "priority": "P1",
+    "estimated_complexity": "S",
+    "sprint": 1,
+    "affected_layers": [
+      "frontend"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "dashboard opens",
+        "when": "page loads",
+        "then": "GET /metrics/current called and KPI cards populate within 2 seconds \u2014 loading skeleton shown while fetching"
+      },
+      {
+        "id": "AC-2",
+        "given": "API returns 404",
+        "when": "any tab loads",
+        "then": "inline error state shown with retry button \u2014 page does not crash"
+      },
+      {
+        "id": "AC-3",
+        "given": "user selects sprint 9 from selector",
+        "when": "selection changes",
+        "then": "GET /metrics/sprint/9 called and all tab data updates \u2014 no full page reload"
+      },
+      {
+        "id": "AC-4",
+        "given": "dashboard running locally",
+        "when": "fetch calls are made",
+        "then": "all requests proxy to LocalStack via Vite proxy \u2014 no direct localhost:4566 URLs in component code"
+      }
+    ],
+    "definition_of_done": [
+      "Hooks: useCurrentMetrics, useSprintList, useSprintDetail, useTrends, useStoryDetail",
+      "Loading skeleton during fetch",
+      "Error state with retry for every hook",
+      "Sprint selector triggers correct API call",
+      "VITE_API_BASE_URL from .env \u2014 not hardcoded",
+      "All hooks tested with MSW \u2014 no real API calls in tests",
+      "Coverage on new code >= 90%",
+      "Accessibility: 0 axe-core violations"
+    ],
+    "constitutions": [
+      "react",
+      "typescript",
+      "security",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 API client + all five hooks | T002 \u2014 Sprint selector component | T003 \u2014 MSW handlers and hook tests"
+  },
+  {
+    "story_id": "DASH-009",
+    "title": "As an engineering manager I want a six-tab React dashboard rendering real pipeline metrics so that I can make data-driven decisions about team productivity, quality, and agent efficiency",
+    "type": "feature",
+    "priority": "P1",
+    "estimated_complexity": "L",
+    "sprint": 1,
+    "affected_layers": [
+      "frontend"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "real metrics data available from API",
+        "when": "each of the six tabs is viewed",
+        "then": "all KPI cards, charts, and tables render with real data \u2014 no hardcoded values"
+      },
+      {
+        "id": "AC-2",
+        "given": "an insight alert exists in current snapshot",
+        "when": "Productivity tab loads",
+        "then": "insight strip renders with correct message and severity colour"
+      },
+      {
+        "id": "AC-3",
+        "given": "dashboard viewed on 320px screen",
+        "when": "any tab is open",
+        "then": "all content readable \u2014 no horizontal scroll, no overlapping elements"
+      },
+      {
+        "id": "AC-4",
+        "given": "a story row is clicked in Story drill-down tab",
+        "when": "click occurs",
+        "then": "GET /metrics/story/{id} called and story detail panel opens with gate timeline, phase durations, escalation log"
+      },
+      {
+        "id": "AC-5",
+        "given": "dashboard rendered",
+        "when": "axe-core scan runs",
+        "then": "zero violations"
+      }
+    ],
+    "definition_of_done": [
+      "Six tabs: Productivity, Quality, Agent efficiency, Value, DORA, Story drill-down",
+      "All charts use Chart.js with real API data",
+      "KPI trend arrows colour-coded: down-good green, up-bad red, by metric direction",
+      "Insight alerts with severity styling",
+      "Story drill-down with click-through to story detail panel",
+      "Responsive at 320px, 768px, 1280px",
+      "Accessibility: 0 axe-core violations",
+      "Coverage on new code >= 90%",
+      "Lighthouse performance >= 80"
+    ],
+    "constitutions": [
+      "react",
+      "typescript",
+      "security",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 Shared components: KPI card, chart wrapper, insight strip, trend badge | T002 \u2014 Productivity and DORA tabs | T003 \u2014 Quality and Agent efficiency tabs | T004 \u2014 Value tab + Story drill-down with detail panel"
+  },
+  {
+    "story_id": "GHAGENT-001",
+    "title": "As the GitHub enrichment agent I want a typed LangGraph state definition so that state is immutable, resumable from any node, and every node is independently testable",
+    "type": "agent-story",
+    "priority": "P0",
+    "estimated_complexity": "S",
+    "sprint": 2,
+    "affected_layers": [
+      "agents"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "a list of story dicts and a sprint number",
+        "when": "GitHubMetricsState is initialised",
+        "then": "all required fields present with correct types \u2014 no mutable defaults"
+      },
+      {
+        "id": "AC-2",
+        "given": "state after processing story 5 of 10",
+        "when": "current_idx is inspected",
+        "then": "current_idx is 5 \u2014 graph can resume from this point if interrupted"
+      },
+      {
+        "id": "AC-3",
+        "given": "a node returns an error dict",
+        "when": "state is updated",
+        "then": "error appended to errors list \u2014 previous enriched results not lost"
+      }
+    ],
+    "definition_of_done": [
+      "GitHubMetricsState defined as TypedDict \u2014 no mutable defaults",
+      "All fields typed: story list, enriched list, error list, rate_limit_reset",
+      "EnrichedStory TypedDict with all PR metric fields",
+      "EnrichmentError TypedDict with error_type, message, timestamp",
+      "State unit tests \u2014 pure dict operations, no LLM calls, no graph execution",
+      "Coverage on new code >= 90%"
+    ],
+    "constitutions": [
+      "python",
+      "langgraph",
+      "testing"
+    ],
+    "architect_note": "CRITICAL: This agent makes ZERO LLM calls. LangGraph used for state management and routing only. No prompts. No model costs per run. Confirm in plan annotations.",
+    "decomposition_hint": "T001 \u2014 state.py with all TypedDict definitions | T002 \u2014 Unit tests for state initialisation and field validation"
+  },
+  {
+    "story_id": "GHAGENT-002",
+    "title": "As the agent graph I want GitHub fetch nodes so that each node does one thing, returns state update dicts, and never raises uncaught exceptions",
+    "type": "agent-story",
+    "priority": "P0",
+    "estimated_complexity": "M",
+    "sprint": 2,
+    "affected_layers": [
+      "agents"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "a story ID with a merged PR on branch feature/GHAGENT-002",
+        "when": "find_pr_for_story node runs",
+        "then": "state updated with pr_number and pr_url \u2014 no exception raised"
+      },
+      {
+        "id": "AC-2",
+        "given": "GitHub API returns 403 rate limit",
+        "when": "any fetch node runs",
+        "then": "node returns state update with error_type RATE_LIMIT and reset timestamp \u2014 does not raise"
+      },
+      {
+        "id": "AC-3",
+        "given": "no PR exists for the story branch",
+        "when": "find_pr_for_story runs",
+        "then": "state updated with pr_status NO_PR_FOUND \u2014 no error"
+      },
+      {
+        "id": "AC-4",
+        "given": "PR has 3 reviews and 7 inline comments",
+        "when": "compute_metrics node runs",
+        "then": "pickup_time_hrs, review_time_hrs, pr_size_lines, review_comment_count correct in state"
+      }
+    ],
+    "definition_of_done": [
+      "Five nodes: load_stories, find_pr, fetch_pr_details, fetch_reviews_and_comments, compute_metrics",
+      "Every node returns dict \u2014 never mutates state in place",
+      "Every node catches all exceptions \u2014 returns error dict, never raises",
+      "GITHUB_TOKEN and GITHUB_REPO from os.environ \u2014 never hardcoded",
+      "All nodes tested with mocked requests.get \u2014 no real GitHub API calls",
+      "No LLM calls in any node",
+      "Coverage on new code >= 90%"
+    ],
+    "constitutions": [
+      "python",
+      "langgraph",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 nodes/find_pr.py + nodes/fetch_pr_details.py | T002 \u2014 nodes/fetch_reviews.py + nodes/compute_metrics.py + nodes/load_stories.py | T003 \u2014 Unit tests for all five nodes"
+  },
+  {
+    "story_id": "GHAGENT-003",
+    "title": "As the agent graph I want conditional edges and error routing so that rate limits trigger automatic retry, missing PRs are skipped gracefully, and auth errors halt the run cleanly",
+    "type": "agent-story",
+    "priority": "P0",
+    "estimated_complexity": "M",
+    "sprint": 2,
+    "affected_layers": [
+      "agents"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "find_pr node returns RATE_LIMIT error",
+        "when": "conditional edge evaluates",
+        "then": "graph routes to handle_error which waits then retries \u2014 story not skipped"
+      },
+      {
+        "id": "AC-2",
+        "given": "find_pr node returns NO_PR_FOUND",
+        "when": "conditional edge evaluates",
+        "then": "graph routes to accumulate_and_advance \u2014 story marked no_pr, processing continues"
+      },
+      {
+        "id": "AC-3",
+        "given": "any node returns AUTH_ERROR",
+        "when": "conditional edge evaluates",
+        "then": "graph routes to END \u2014 no further GitHub calls, clear error logged"
+      },
+      {
+        "id": "AC-4",
+        "given": "10 stories with story 7 having no PR",
+        "when": "full graph runs",
+        "then": "stories 1-6 and 8-10 enriched, story 7 marked no_pr \u2014 graph does not halt"
+      },
+      {
+        "id": "AC-5",
+        "given": "all stories processed",
+        "when": "accumulate_and_advance runs with current_idx == len(stories)",
+        "then": "graph routes to post_to_ingest_api \u2014 not back to find_pr"
+      }
+    ],
+    "definition_of_done": [
+      "Routing functions: route_after_find_pr, route_after_fetch, route_after_accumulate, route_after_error",
+      "handle_error node waits until X-RateLimit-Reset then retries",
+      "API_5XX retried up to 3 times then story skipped",
+      "Full graph compiled with MemorySaver checkpointer",
+      "Integration test: 10 mocked stories mix of found/not-found/rate-limit",
+      "Integration test: auth error halts at correct story",
+      "No LLM calls in any test",
+      "Coverage on new code >= 90%"
+    ],
+    "constitutions": [
+      "python",
+      "langgraph",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 graph.py wiring all nodes and edges | T002 \u2014 nodes/accumulate.py + nodes/handle_error.py + nodes/post_to_ingest.py | T003 \u2014 Integration tests: full graph all scenarios"
+  },
+  {
+    "story_id": "GHAGENT-004",
+    "title": "As yooti sprint:report I want the GitHub agent invoked automatically so that PR enrichment reaches the dashboard without any manual steps",
+    "type": "feature",
+    "priority": "P1",
+    "estimated_complexity": "S",
+    "sprint": 2,
+    "affected_layers": [
+      "agents",
+      "api"
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-1",
+        "given": "GITHUB_TOKEN and GITHUB_REPO set in .env",
+        "when": "yooti sprint:report runs",
+        "then": "GitHub agent runs after aggregate-metrics.py and enriched metrics appear in dashboard"
+      },
+      {
+        "id": "AC-2",
+        "given": "GITHUB_TOKEN not set",
+        "when": "yooti sprint:report runs",
+        "then": "sprint:report completes normally with a warning \u2014 no error, no halt"
+      },
+      {
+        "id": "AC-3",
+        "given": "agent completes with 2 stories having no PR",
+        "when": "sprint:report prints summary",
+        "then": "output shows: '13 stories enriched from GitHub, 2 skipped (no PR found)'"
+      },
+      {
+        "id": "AC-4",
+        "given": "agent hits rate limit mid-run",
+        "when": "sprint:report is waiting",
+        "then": "message printed: 'GitHub rate limit \u2014 resuming in Xm Ys' \u2014 process does not exit"
+      }
+    ],
+    "definition_of_done": [
+      "Agent runner invoked from sprint:report after base aggregation",
+      "GITHUB_TOKEN absence handled gracefully \u2014 warning not error",
+      "Summary line printed: N enriched, N skipped",
+      "Rate limit wait message with time printed",
+      "No real GitHub or API calls in unit tests \u2014 all mocked",
+      "Coverage on new code >= 90%"
+    ],
+    "constitutions": [
+      "python",
+      "langgraph",
+      "testing"
+    ],
+    "decomposition_hint": "T001 \u2014 agents/github_metrics/runner.py wrapping graph invocation | T002 \u2014 Integration into sprint:report with env check and summary print | T003 \u2014 Unit tests all AC with mocked graph"
+  }
+]

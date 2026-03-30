@@ -1,0 +1,59 @@
+{
+  "story_id": "GHAGENT-003",
+  "title": "As the agent graph I want conditional edges and error routing so that rate limits trigger automatic retry, missing PRs are skipped gracefully, and auth errors halt the run cleanly",
+  "type": "agent-story",
+  "priority": "P0",
+  "estimated_complexity": "M",
+  "sprint": 2,
+  "affected_layers": [
+    "agents"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "find_pr node returns RATE_LIMIT error",
+      "when": "conditional edge evaluates",
+      "then": "graph routes to handle_error which waits then retries — story not skipped"
+    },
+    {
+      "id": "AC-2",
+      "given": "find_pr node returns NO_PR_FOUND",
+      "when": "conditional edge evaluates",
+      "then": "graph routes to accumulate_and_advance — story marked no_pr, processing continues"
+    },
+    {
+      "id": "AC-3",
+      "given": "any node returns AUTH_ERROR",
+      "when": "conditional edge evaluates",
+      "then": "graph routes to END — no further GitHub calls, clear error logged"
+    },
+    {
+      "id": "AC-4",
+      "given": "10 stories with story 7 having no PR",
+      "when": "full graph runs",
+      "then": "stories 1-6 and 8-10 enriched, story 7 marked no_pr — graph does not halt"
+    },
+    {
+      "id": "AC-5",
+      "given": "all stories processed",
+      "when": "accumulate_and_advance runs with current_idx == len(stories)",
+      "then": "graph routes to post_to_ingest_api — not back to find_pr"
+    }
+  ],
+  "definition_of_done": [
+    "Routing functions: route_after_find_pr, route_after_fetch, route_after_accumulate, route_after_error",
+    "handle_error node waits until X-RateLimit-Reset then retries",
+    "API_5XX retried up to 3 times then story skipped",
+    "Full graph compiled with MemorySaver checkpointer",
+    "Integration test: 10 mocked stories mix of found/not-found/rate-limit",
+    "Integration test: auth error halts at correct story",
+    "No LLM calls in any test",
+    "Coverage on new code >= 90%"
+  ],
+  "constitutions": [
+    "python",
+    "langgraph",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — graph.py wiring all nodes and edges | T002 — nodes/accumulate.py + nodes/handle_error.py + nodes/post_to_ingest.py | T003 — Integration tests: full graph all scenarios"
+}

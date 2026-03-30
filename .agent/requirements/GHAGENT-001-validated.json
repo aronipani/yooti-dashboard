@@ -1,0 +1,46 @@
+{
+  "story_id": "GHAGENT-001",
+  "title": "As the GitHub enrichment agent I want a typed LangGraph state definition so that state is immutable, resumable from any node, and every node is independently testable",
+  "type": "agent-story",
+  "priority": "P0",
+  "estimated_complexity": "S",
+  "sprint": 2,
+  "affected_layers": [
+    "agents"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "a list of story dicts and a sprint number",
+      "when": "GitHubMetricsState is initialised",
+      "then": "all required fields present with correct types — no mutable defaults"
+    },
+    {
+      "id": "AC-2",
+      "given": "state after processing story 5 of 10",
+      "when": "current_idx is inspected",
+      "then": "current_idx is 5 — graph can resume from this point if interrupted"
+    },
+    {
+      "id": "AC-3",
+      "given": "a node returns an error dict",
+      "when": "state is updated",
+      "then": "error appended to errors list — previous enriched results not lost"
+    }
+  ],
+  "definition_of_done": [
+    "GitHubMetricsState defined as TypedDict — no mutable defaults",
+    "All fields typed: story list, enriched list, error list, rate_limit_reset",
+    "EnrichedStory TypedDict with all PR metric fields",
+    "EnrichmentError TypedDict with error_type, message, timestamp",
+    "State unit tests — pure dict operations, no LLM calls, no graph execution",
+    "Coverage on new code >= 90%"
+  ],
+  "constitutions": [
+    "python",
+    "langgraph",
+    "testing"
+  ],
+  "architect_note": "CRITICAL: This agent makes ZERO LLM calls. LangGraph used for state management and routing only. No prompts. No model costs per run. Confirm in plan annotations.",
+  "decomposition_hint": "T001 — state.py with all TypedDict definitions | T002 — Unit tests for state initialisation and field validation"
+}

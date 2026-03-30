@@ -1,0 +1,52 @@
+{
+  "story_id": "DASH-005",
+  "title": "As the trends and story tabs I want GET /metrics/trends and GET /metrics/story/{id} so that users see metric history and per-story detail",
+  "type": "aws-lambda",
+  "priority": "P1",
+  "estimated_complexity": "M",
+  "sprint": 1,
+  "affected_layers": [
+    "api",
+    "database"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "given": "five trend points exist for cycle_time_avg",
+      "when": "GET /metrics/trends?project_id=yooti-ri&metric=cycle_time_avg is called",
+      "then": "array of five objects with sprint_num, value, delta_from_prev, direction returned"
+    },
+    {
+      "id": "AC-2",
+      "given": "no metric filter provided",
+      "when": "GET /metrics/trends?project_id=yooti-ri is called",
+      "then": "all metric series returned grouped by metric_name"
+    },
+    {
+      "id": "AC-3",
+      "given": "story PROJ-123 exists in sprint 10",
+      "when": "GET /metrics/story/PROJ-123?project_id=yooti-ri&sprint=10 is called",
+      "then": "response includes evidence fields, phase_durations, gate_timestamps with reviewers, escalation_log"
+    },
+    {
+      "id": "AC-4",
+      "given": "story PROJ-999 does not exist",
+      "when": "GET /metrics/story/PROJ-999 is called",
+      "then": "404 with error STORY_NOT_FOUND"
+    }
+  ],
+  "definition_of_done": [
+    "All AC passing with @mock_aws",
+    "Trend data sorted ascending by sprint_num for charting",
+    "Story detail includes gate_timestamps, phase_durations, escalation_log",
+    "Coverage on new code >= 90%",
+    "Security scan: 0 HIGH/CRITICAL"
+  ],
+  "constitutions": [
+    "python",
+    "aws",
+    "security",
+    "testing"
+  ],
+  "decomposition_hint": "T001 — get_trends Lambda | T002 — get_story_detail Lambda | T003 — Unit tests all AC"
+}
