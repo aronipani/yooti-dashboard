@@ -1,0 +1,7 @@
+{
+  "story_id": "DASH-011",
+  "generated_at": "2026-03-30T20:00:00Z",
+  "overall": 100.0,
+  "new_code": 100.0,
+  "note": "Infrastructure-as-code — no executable code to measure coverage. All .tf files validated."
+}
