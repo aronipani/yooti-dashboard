@@ -1,0 +1,7 @@
+{
+  "captured_at": "2026-03-30T17:29:24.999252+00:00",
+  "tag": "--sprint",
+  "git_sha": "62043aa7b430d0a3e633eee5738e5fcde2ad1a05",
+  "git_branch": "feature/DASH-010",
+  "note": "Run with real test suite output for full baseline"
+}
