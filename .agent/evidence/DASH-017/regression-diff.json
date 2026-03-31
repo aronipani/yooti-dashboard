@@ -1,0 +1,9 @@
+{
+  "story_id": "DASH-017",
+  "generated_at": "2026-03-30T20:00:00Z",
+  "baseline_sprint": "sprint-1",
+  "newly_failing": [],
+  "newly_passing": [],
+  "total_tests_before": 274,
+  "total_tests_after": 274
+}
