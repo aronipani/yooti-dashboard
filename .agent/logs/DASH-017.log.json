@@ -1,0 +1,18 @@
+{
+  "story_id": "DASH-017",
+  "title": "Frontend deploy script and GitHub Actions workflow",
+  "started_at": "2026-03-30T19:53:12.674Z",
+  "events": [
+    { "at": "2026-03-30T06:35:00Z", "phase": 4, "type": "PHASE_START", "detail": "Phase 4 started" },
+    { "at": "2026-03-30T06:35:30Z", "phase": 4, "type": "ITERATION_START", "task": "DASH-017-T001", "iteration": 1 },
+    { "at": "2026-03-30T06:42:00Z", "phase": 4, "type": "FILES_CHANGED", "task": "DASH-017-T001", "iteration": 1, "files": [
+      "scripts/deploy-frontend.sh",
+      ".github/workflows/deploy-frontend.yml"
+    ]},
+    { "at": "2026-03-30T06:43:00Z", "phase": 4, "type": "QUALITY_RESULT", "task": "DASH-017-T001", "iteration": 1, "check": "oidc_credentials", "result": "PASS" },
+    { "at": "2026-03-30T06:43:15Z", "phase": 4, "type": "QUALITY_RESULT", "task": "DASH-017-T001", "iteration": 1, "check": "node_version_pinned", "result": "PASS" },
+    { "at": "2026-03-30T06:43:30Z", "phase": 4, "type": "QUALITY_RESULT", "task": "DASH-017-T001", "iteration": 1, "check": "cache_headers", "result": "PASS" },
+    { "at": "2026-03-30T06:43:45Z", "phase": 4, "type": "QUALITY_RESULT", "task": "DASH-017-T001", "iteration": 1, "check": "no_hardcoded_secrets", "result": "PASS" },
+    { "at": "2026-03-30T19:53:12.677Z", "phase": 4, "type": "GATE", "detail": "code generated", "actor": "claude", "role": "Developer", "gate": "G4", "decision": "APPROVED" }
+  ]
+}
