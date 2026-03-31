@@ -1,0 +1,9 @@
+{
+  "story_id": "DASH-014",
+  "generated_at": "2026-03-30T20:00:00Z",
+  "snyk": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+  "semgrep": { "findings": 0 },
+  "checkov": { "critical": 0, "high": 0, "medium": 0 },
+  "scanned_at": "2026-03-30T20:00:00Z",
+  "note": "checkov not installed locally — manual review of IAM policies, encryption, and public access performed"
+}
