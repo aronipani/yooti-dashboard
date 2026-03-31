@@ -1,0 +1,8 @@
+{
+  "story_id": "DASH-015",
+  "generated_at": "2026-03-30T20:00:00Z",
+  "unit": { "total": 0, "passed": 0, "failed": 0 },
+  "integration": { "total": 0, "passed": 0, "failed": 0 },
+  "terraform_validate": "PASS",
+  "note": "Infrastructure story — validated with terraform validate, no unit tests"
+}
